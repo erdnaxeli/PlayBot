@@ -9,13 +9,14 @@ import (
 )
 
 func main() {
-	url := os.Args[1]
+	msg := os.Args[1]
 
-	music, err := extractors.Extract(url)
+	matchedUrl, music, err := extractors.Extract(msg)
 	if err != nil {
 		log.Fatal(err)
 	}
 
+	fmt.Println(matchedUrl)
 	fmt.Println(music.RecordId)
 	fmt.Println(music.Url)
 	fmt.Println(music.Name)
