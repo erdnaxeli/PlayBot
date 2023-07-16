@@ -28,17 +28,17 @@ type musicRecord struct {
 
 type SoundCloudExtractor struct{}
 
-func (*SoundCloudExtractor) Match(url string) (string, string) {
-	re := regexp.MustCompile(`(?:^|[^!])https?://(?:www\.)?soundcloud.com/([a-zA-Z0-9_-]+/[a-zA-Z0-9_-]+)(?:\?.+)?`)
+func (SoundCloudExtractor) Match(url string) (string, string) {
+	re := regexp.MustCompile(`(?:^|[^!])(https?://(?:www\.)?soundcloud.com/([a-zA-Z0-9_-]+/[a-zA-Z0-9_-]+)(?:\?.+)?)`)
 	groups := re.FindStringSubmatch(url)
 	if groups == nil {
 		return "", ""
 	}
 
-	return groups[0], groups[1]
+	return groups[1], groups[2]
 }
 
-func (e *SoundCloudExtractor) Extract(recordId string) (types.MusicRecord, error) {
+func (e SoundCloudExtractor) Extract(recordId string) (types.MusicRecord, error) {
 	soundCloudRecord := e.getSoundcloudData("https://m.soundcloud.com/" + recordId)
 	recordId, err := e.getRecordId(soundCloudRecord.Id)
 	if err != nil {
@@ -54,7 +54,7 @@ func (e *SoundCloudExtractor) Extract(recordId string) (types.MusicRecord, error
 	}, nil
 }
 
-func (*SoundCloudExtractor) getRecordId(recordId string) (string, error) {
+func (SoundCloudExtractor) getRecordId(recordId string) (string, error) {
 	parts := strings.Split(recordId, ":")
 	if len(parts) != 3 {
 		return "", fmt.Errorf("unknown Soundcloud record id '%s'", recordId)
@@ -63,7 +63,7 @@ func (*SoundCloudExtractor) getRecordId(recordId string) (string, error) {
 	return parts[2], nil
 }
 
-func (e *SoundCloudExtractor) getSoundcloudData(url string) musicRecord {
+func (e SoundCloudExtractor) getSoundcloudData(url string) musicRecord {
 	var resp *http.Response
 	var err error
 
@@ -107,7 +107,7 @@ func (e *SoundCloudExtractor) getSoundcloudData(url string) musicRecord {
 }
 
 // Return the content of the first <script type="application/ld+json"> node found.
-func (e *SoundCloudExtractor) parse(node *html.Node) string {
+func (e SoundCloudExtractor) parse(node *html.Node) string {
 	if node.Type == html.ElementNode && node.Data == "script" {
 		for _, attr := range node.Attr {
 			if attr.Key == "type" && attr.Val == "application/ld+json" {
