@@ -4,7 +4,7 @@ import (
 	"github.com/erdnaxeli/PlayBot/types"
 )
 
-type Extractor interface {
+type MatcherExtractor interface {
 	// Match the given url to the format expected by this Extractor. If it matches
 	// it returns a tuple with the whole URL matched and the unique identifier for this
 	// music recourd, else it returns two empty string.

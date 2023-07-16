@@ -124,7 +124,3 @@ func (e *SoundCloudExtractor) parse(node *html.Node) string {
 
 	return ""
 }
-
-func init() {
-	extractors = append(extractors, &SoundCloudExtractor{})
-}

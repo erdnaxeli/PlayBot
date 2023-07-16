@@ -3,7 +3,6 @@ package extractors
 import (
 	"context"
 	"fmt"
-	"os"
 	"regexp"
 
 	"github.com/erdnaxeli/PlayBot/iso8601"
@@ -12,7 +11,9 @@ import (
 	"google.golang.org/api/youtube/v3"
 )
 
-type YoutubeExtractor struct{}
+type YoutubeExtractor struct {
+	ApiKey string
+}
 
 func (*YoutubeExtractor) Match(url string) (string, string) {
 	re := regexp.MustCompile(`(?:^|[^!])https?://(?:(?:www|music).youtube.com/watch\?[a-zA-Z0-9_=&-]*v=|youtu.be/)([a-zA-Z0-9_-]+)`)
@@ -25,7 +26,7 @@ func (*YoutubeExtractor) Match(url string) (string, string) {
 }
 
 func (e *YoutubeExtractor) Extract(recordId string) (types.MusicRecord, error) {
-	youtube, err := youtube.NewService(context.Background(), option.WithAPIKey(os.Getenv("YOUTUBE_API_KEY")))
+	youtube, err := youtube.NewService(context.Background(), option.WithAPIKey(e.ApiKey))
 	if err != nil {
 		return types.MusicRecord{}, err
 	}
@@ -42,14 +43,10 @@ func (e *YoutubeExtractor) Extract(recordId string) (types.MusicRecord, error) {
 
 	video := response.Items[0]
 	return types.MusicRecord{
-		Band:     types.Band{Name: video.Snippet.Title},
+		Band:     types.Band{Name: video.Snippet.ChannelTitle},
 		Duration: iso8601.ParseDuration(video.ContentDetails.Duration),
 		Name:     video.Snippet.Title,
 		RecordId: recordId,
 		Url:      fmt.Sprintf("https://www.youtube.com/watch?v=%s", recordId),
 	}, nil
-}
-
-func init() {
-	extractors = append(extractors, &YoutubeExtractor{})
 }

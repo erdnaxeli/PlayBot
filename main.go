@@ -11,7 +11,18 @@ import (
 func main() {
 	msg := os.Args[1]
 
-	matchedUrl, music, err := extractors.Extract(msg)
+	config, err := readConfigFile("playbot.conf")
+	if err != nil {
+		log.Fatal(err)
+	}
+	extractor := extractors.New(
+		&extractors.SoundCloudExtractor{},
+		&extractors.YoutubeExtractor{
+			ApiKey: config.YoutubeApiKey,
+		},
+	)
+
+	matchedUrl, music, err := extractor.Extract(msg)
 	if err != nil {
 		log.Fatal(err)
 	}
