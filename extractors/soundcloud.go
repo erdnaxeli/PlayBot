@@ -29,7 +29,7 @@ type musicRecord struct {
 type SoundCloudExtractor struct{}
 
 func (*SoundCloudExtractor) Match(url string) (string, string) {
-	re := regexp.MustCompile(`https?://(?:www\.)?soundcloud.com/([a-zA-Z0-9_-]+/[a-zA-Z0-9_-]+)(?:\?.+)?`)
+	re := regexp.MustCompile(`(?:^|[^!])https?://(?:www\.)?soundcloud.com/([a-zA-Z0-9_-]+/[a-zA-Z0-9_-]+)(?:\?.+)?`)
 	groups := re.FindStringSubmatch(url)
 	if groups == nil {
 		return "", ""
