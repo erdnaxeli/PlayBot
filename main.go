@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"github.com/erdnaxeli/PlayBot/extractors"
+	"github.com/erdnaxeli/PlayBot/extractors/ldjson"
 )
 
 func main() {
@@ -16,7 +17,9 @@ func main() {
 		log.Fatal(err)
 	}
 	extractor := extractors.New(
-		&extractors.SoundCloudExtractor{},
+		extractors.NewSoundCloudExtractor(
+			ldjson.NewLdJsonExtractor(),
+		),
 		&extractors.YoutubeExtractor{
 			ApiKey: config.YoutubeApiKey,
 		},
