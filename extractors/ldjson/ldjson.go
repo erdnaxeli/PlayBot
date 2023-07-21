@@ -11,16 +11,22 @@ import (
 	"golang.org/x/net/html"
 )
 
+type MusicAlbum struct {
+	ByArtist MusicGroup `json:"byArtist"`
+}
+
 type MusicGroup struct {
 	Name string `json:"name"`
 }
 
-type MusicRecord struct {
-	Name     string     `json:"name"`
-	Duration string     `json:"duration"`
-	Url      string     `json:"url"`
-	ByArtist MusicGroup `json:"byArtist"`
-	Id       string     `json:"@id"`
+type MusicRecording struct {
+	ByArtist         MusicGroup `json:"byArtist"`
+	Duration         string     `json:"duration"`
+	Id               string     `json:"@id"`
+	InAlbum          MusicAlbum `json:"InAlbum"`
+	MainEntityOfPage string     `json:"mainEntityOfPage"`
+	Name             string     `json:"name"`
+	Url              string     `json:"url"`
 }
 
 type LdJsonExtractor interface {
@@ -35,17 +41,25 @@ func NewLdJsonExtractor() LdJsonExtractor {
 
 func (e ldJsonExtractor) Extract(url string) (types.MusicRecord, error) {
 	record := e.getMusicRecord(url)
+	recordUrl := record.Url
+	if recordUrl == "" {
+		recordUrl = record.MainEntityOfPage
+	}
+	band := record.InAlbum.ByArtist.Name
+	if band == "" {
+		band = record.ByArtist.Name
+	}
 
 	return types.MusicRecord{
-		Band:     types.Band{Name: record.ByArtist.Name},
+		Band:     types.Band{Name: band},
 		Duration: iso8601.ParseDuration(record.Duration),
 		Name:     record.Name,
 		RecordId: record.Id,
-		Url:      record.Url,
+		Url:      recordUrl,
 	}, nil
 }
 
-func (e ldJsonExtractor) getMusicRecord(url string) MusicRecord {
+func (e ldJsonExtractor) getMusicRecord(url string) MusicRecording {
 	var resp *http.Response
 	var err error
 
@@ -79,7 +93,7 @@ func (e ldJsonExtractor) getMusicRecord(url string) MusicRecord {
 		log.Fatal("No ld+json found")
 	}
 
-	var music MusicRecord
+	var music MusicRecording
 	err = json.Unmarshal([]byte(ldjson), &music)
 	if err != nil {
 		log.Fatal("Error while Unmarshal: ", err)

@@ -23,6 +23,9 @@ func main() {
 		&extractors.YoutubeExtractor{
 			ApiKey: config.YoutubeApiKey,
 		},
+		extractors.NewBandcampExtractor(
+			ldjson.NewLdJsonExtractor(),
+		),
 	)
 
 	matchedUrl, music, err := extractor.Extract(msg)

@@ -1,15 +1,25 @@
 package iso8601
 
 import (
+	"log"
 	"regexp"
 	"strconv"
 	"time"
 )
 
+// This regex only parses the time part of an ISO86010  duration expression.
+// It is actually invalid as the T (time) delimiter is mandatory, but some
+// websites (bandcamp) do not put it.""
+var re = regexp.MustCompile(
+	`PT?(?:(?P<hours>\d\d?)H)?(?:(?P<minutes>\d\d?)M)(?:(?P<secondes>\d\d?)S)`,
+)
+
 // Parse ISO8601 duration.
 func ParseDuration(duration string) time.Duration {
-	re := regexp.MustCompile(`PT(?:(?P<hours>\d\d?)H)?(?:(?P<minutes>\d\d?)M)(?:(?P<secondes>\d\d?)S)`)
 	groups := re.FindStringSubmatch(duration)
+	if groups == nil {
+		log.Fatalf("Invalid duration: %s", duration)
+	}
 
 	var hours, minutes, seconds int
 	if groups[1] != "" {
