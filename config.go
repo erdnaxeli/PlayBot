@@ -2,7 +2,7 @@ package main
 
 import (
 	"encoding/json"
-	"io/ioutil"
+	"io"
 	"os"
 )
 
@@ -17,13 +17,16 @@ func readConfigFile(filename string) (Config, error) {
 	}
 
 	defer file.Close()
-	content, err := ioutil.ReadAll(file)
+	content, err := io.ReadAll(file)
 	if err != nil {
 		return Config{}, nil
 	}
 
 	var config Config
-	json.Unmarshal(content, &config)
+	err = json.Unmarshal(content, &config)
+	if err != nil {
+		return Config{}, nil
+	}
 
 	return config, nil
 }
