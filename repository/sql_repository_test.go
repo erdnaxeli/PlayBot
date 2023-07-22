@@ -1,0 +1,112 @@
+package repository
+
+import (
+	"database/sql"
+	"testing"
+	"time"
+
+	"github.com/erdnaxeli/PlayBot/types"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+)
+
+func assertEqualRecordRow(t *testing.T, tx *sql.Tx, record types.MusicRecord, rowId int64) {
+	row := tx.QueryRow(
+		`
+			select
+				type,
+				url,
+				sender_irc,
+				sender,
+				title,
+				duration,
+				file,
+				broken,
+				channel,
+				playlist,
+				external_id
+			from playbot
+			where
+				id = ?
+		`,
+		rowId,
+	)
+	var type_, url, title string
+	var senderIrc, sender, file, channel, externalId sql.NullString
+	var duration, broken, playlist int
+	_ = row.Scan(&type_, &url, &senderIrc, &sender, &title, &duration, &file, &broken, &channel, &playlist, &externalId)
+	assert.Equal(t, record.Source, type_)
+	assert.Equal(t, record.Url, url)
+	assert.False(t, senderIrc.Valid)
+	assert.True(t, sender.Valid)
+	assert.Equal(t, record.Band.Name, sender.String)
+	assert.Equal(t, record.Name, title)
+	assert.Equal(t, int(record.Duration.Seconds()), duration)
+	assert.False(t, file.Valid)
+	assert.Equal(t, 0, broken)
+	assert.False(t, channel.Valid)
+	assert.Equal(t, 0, playlist)
+	assert.True(t, externalId.Valid)
+	assert.Equal(t, record.RecordId, externalId.String)
+}
+
+func TestInsertOrUpdateMusicRecord_Insert(t *testing.T) {
+	recordDuration, _ := time.ParseDuration("1m35s")
+	record := types.MusicRecord{
+		Band:     types.Band{Name: "TestBand"},
+		Duration: recordDuration,
+		Name:     "testName",
+		RecordId: "testRecordId",
+		Source:   "testSource",
+		Url:      "testUrl",
+	}
+	r, err := NewSqlRepository("test:test@(localhost)/test")
+	require.Nil(
+		t,
+		err,
+		"A MariaDB server must be listening on localhost with a user 'test', a password 'test' and a database 'test' initialized with the test-db.sql file.")
+	defer r.db.Close()
+	tx, _ := r.db.Begin()
+	defer func() { _ = tx.Rollback() }()
+
+	recordId, err := r.insertOrUpdateMusicRecord(tx, record)
+
+	require.Nil(t, err)
+	assertEqualRecordRow(t, tx, record, recordId)
+
+}
+
+func TestInsertOrUpdateMusicRecord_Update(t *testing.T) {
+	recordDuration, _ := time.ParseDuration("1m35s")
+	record := types.MusicRecord{
+		Band:     types.Band{Name: "TestBand"},
+		Duration: recordDuration,
+		Name:     "testName",
+		RecordId: "testRecordId",
+		Source:   "testSource",
+		Url:      "testUrl",
+	}
+	r, err := NewSqlRepository("test:test@(localhost)/test")
+	require.Nil(
+		t,
+		err,
+		"A MariaDB server must be listening on localhost with a user 'test', a password 'test' and a database 'test' initialized with the test-db.sql file.")
+	defer r.db.Close()
+	tx, _ := r.db.Begin()
+	defer func() { _ = tx.Rollback() }()
+	recordId, err := r.insertOrUpdateMusicRecord(tx, record)
+	require.Nil(t, err)
+
+	record.Band.Name = "NewBand"
+	record.Duration += 1
+	record.Name = "NewName"
+	record.RecordId = "NewRecordId"
+	record.Source = "NewSource"
+
+	newRecordId, err := r.insertOrUpdateMusicRecord(tx, record)
+
+	require.Nil(t, err)
+	assert.Equal(t, recordId, newRecordId)
+	assertEqualRecordRow(t, tx, record, recordId)
+
+}

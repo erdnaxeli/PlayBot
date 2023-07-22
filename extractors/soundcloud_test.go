@@ -55,8 +55,8 @@ func TestSoundcloudMatch(t *testing.T) {
 			test.in,
 			func(t *testing.T) {
 				matchedUrl, recordId := SoundCloudExtractor{}.Match(test.in)
-				assert.Equal(t, matchedUrl, test.matchedUrl)
-				assert.Equal(t, recordId, test.recordId)
+				assert.Equal(t, test.matchedUrl, matchedUrl)
+				assert.Equal(t, test.recordId, recordId)
 			},
 		)
 	}

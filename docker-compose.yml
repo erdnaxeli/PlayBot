@@ -1,0 +1,14 @@
+version: "3.1"
+
+services:
+  db:
+    image: mariadb:10.5
+    environment:
+      MARIADB_RANDOM_ROOT_PASSWORD: yes
+      MARIADB_USER: test
+      MARIADB_PASSWORD: test
+      MARIADB_DATABASE: test
+    volumes:
+      - ./test-db.sql:/docker-entrypoint-initdb.d/00-create-tables.sql
+    ports:
+      - 127.0.0.1:3306:3306
