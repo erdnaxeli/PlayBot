@@ -94,7 +94,9 @@ func (sqlRepository) insertOrUpdateMusicRecord(tx *sql.Tx, record types.MusicRec
 	return recordId, nil
 }
 
-func (sqlRepository) saveChannelPost(tx *sql.Tx, recordId int64, person types.Person, channel types.Channel) error {
+func (sqlRepository) saveChannelPost(
+	tx *sql.Tx, recordId int64, person types.Person, channel types.Channel,
+) error {
 	_, err := tx.Exec(
 		`
 			insert into playbot_chan (

@@ -5,6 +5,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/brianvoe/gofakeit/v6"
 	"github.com/erdnaxeli/PlayBot/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -34,7 +35,8 @@ func assertEqualRecordRow(t *testing.T, tx *sql.Tx, record types.MusicRecord, ro
 	var type_, url, title string
 	var senderIrc, sender, file, channel, externalId sql.NullString
 	var duration, broken, playlist int
-	_ = row.Scan(&type_, &url, &senderIrc, &sender, &title, &duration, &file, &broken, &channel, &playlist, &externalId)
+	err := row.Scan(&type_, &url, &senderIrc, &sender, &title, &duration, &file, &broken, &channel, &playlist, &externalId)
+	require.Nil(t, err)
 	assert.Equal(t, record.Source, type_)
 	assert.Equal(t, record.Url, url)
 	assert.False(t, senderIrc.Valid)
@@ -50,6 +52,20 @@ func assertEqualRecordRow(t *testing.T, tx *sql.Tx, record types.MusicRecord, ro
 	assert.Equal(t, record.RecordId, externalId.String)
 }
 
+func getTestRepository(t *testing.T) sqlRepository {
+	r, err := NewSqlRepository("test:test@(localhost)/test")
+	require.Nil(
+		t,
+		err,
+		"A MariaDB server must be listening on localhost with a user 'test', a password 'test' and a database 'test' initialized with the test-db.sql file.",
+	)
+	return r
+}
+
+func rollback(tx *sql.Tx) {
+	_ = tx.Rollback()
+}
+
 func TestInsertOrUpdateMusicRecord_Insert(t *testing.T) {
 	recordDuration, _ := time.ParseDuration("1m35s")
 	record := types.MusicRecord{
@@ -60,11 +76,7 @@ func TestInsertOrUpdateMusicRecord_Insert(t *testing.T) {
 		Source:   "testSource",
 		Url:      "testUrl",
 	}
-	r, err := NewSqlRepository("test:test@(localhost)/test")
-	require.Nil(
-		t,
-		err,
-		"A MariaDB server must be listening on localhost with a user 'test', a password 'test' and a database 'test' initialized with the test-db.sql file.")
+	r := getTestRepository(t)
 	defer r.db.Close()
 	tx, _ := r.db.Begin()
 	defer func() { _ = tx.Rollback() }()
@@ -86,14 +98,10 @@ func TestInsertOrUpdateMusicRecord_Update(t *testing.T) {
 		Source:   "testSource",
 		Url:      "testUrl",
 	}
-	r, err := NewSqlRepository("test:test@(localhost)/test")
-	require.Nil(
-		t,
-		err,
-		"A MariaDB server must be listening on localhost with a user 'test', a password 'test' and a database 'test' initialized with the test-db.sql file.")
+	r := getTestRepository(t)
 	defer r.db.Close()
 	tx, _ := r.db.Begin()
-	defer func() { _ = tx.Rollback() }()
+	defer rollback(tx)
 	recordId, err := r.insertOrUpdateMusicRecord(tx, record)
 	require.Nil(t, err)
 
@@ -108,5 +116,82 @@ func TestInsertOrUpdateMusicRecord_Update(t *testing.T) {
 	require.Nil(t, err)
 	assert.Equal(t, recordId, newRecordId)
 	assertEqualRecordRow(t, tx, record, recordId)
+}
 
+func TestSaveChannelPost_ok(t *testing.T) {
+	// setup
+	r := getTestRepository(t)
+	defer r.db.Close()
+	tx, _ := r.db.Begin()
+	defer rollback(tx)
+	var record types.MusicRecord
+	_ = gofakeit.Struct(&record)
+	record.Duration, _ = time.ParseDuration("1m35s")
+	recordId, err := r.insertOrUpdateMusicRecord(tx, record)
+	require.Nil(t, err)
+
+	// data to test
+	var person types.Person
+	var channel types.Channel
+	_ = gofakeit.Struct(&person)
+	_ = gofakeit.Struct(&channel)
+
+	// test
+	err = r.saveChannelPost(tx, recordId, person, channel)
+
+	// assertions
+	require.Nil(t, err)
+	rows, err := tx.Query(
+		`
+			select
+				sender_irc,
+				chan
+			from playbot_chan
+			where
+				content = ?
+		`,
+		recordId,
+	)
+	require.Nil(t, err)
+	require.True(t, rows.Next())
+	var senderIrc, channelName string
+	err = rows.Scan(&senderIrc, &channelName)
+	require.Nil(t, err)
+	assert.Equal(t, person.Name, senderIrc)
+	assert.Equal(t, channel.Name, channelName)
+	// assert there are no more rows
+	assert.False(t, rows.Next())
+	assert.Nil(t, rows.Err())
+}
+
+func TestSaveChannelPost_RecordNotFound(t *testing.T) {
+	//setup
+	r := getTestRepository(t)
+	defer r.db.Close()
+	tx, _ := r.db.Begin()
+	defer rollback(tx)
+	var person types.Person
+	var channel types.Channel
+	_ = gofakeit.Struct(&person)
+	_ = gofakeit.Struct(&channel)
+
+	// test
+	err := r.saveChannelPost(tx, 42, person, channel)
+
+	// assertions
+	assert.NotNil(t, err)
+	row := tx.QueryRow(
+		`
+			select
+				sender_irc,
+				chan
+			from playbot_chan
+			where
+				content = ?
+		`,
+		42,
+	)
+	var senderIrc, channelName string
+	err = row.Scan(&senderIrc, &channelName)
+	assert.ErrorIs(t, err, sql.ErrNoRows)
 }
