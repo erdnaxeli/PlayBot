@@ -195,3 +195,95 @@ func TestSaveChannelPost_RecordNotFound(t *testing.T) {
 	err = row.Scan(&senderIrc, &channelName)
 	assert.ErrorIs(t, err, sql.ErrNoRows)
 }
+
+func TestSaveMusicRecord_once(t *testing.T) {
+	// setup
+	r := getTestRepository(t)
+	defer r.db.Close()
+	var post types.MusicPost
+	_ = gofakeit.Struct(&post)
+	post.MusicRecord.Duration, _ = time.ParseDuration("1m35s")
+
+	// test
+	recordId, err := r.SaveMusicRecord(post)
+
+	// assertions
+	require.Nil(t, err)
+	tx, _ := r.db.Begin()
+	defer rollback(tx)
+	assertEqualRecordRow(t, tx, post.MusicRecord, recordId)
+	rows, err := tx.Query(
+		`
+			select
+				sender_irc,
+				chan
+			from playbot_chan
+			where
+				content = ?
+		`,
+		recordId,
+	)
+	require.Nil(t, err)
+	require.True(t, rows.Next())
+	var senderIrc, channelName string
+	err = rows.Scan(&senderIrc, &channelName)
+	require.Nil(t, err)
+	assert.Equal(t, post.Person.Name, senderIrc)
+	assert.Equal(t, post.Channel.Name, channelName)
+	// assert there are no more rows
+	require.False(t, rows.Next())
+	assert.Nil(t, rows.Err())
+}
+
+func TestSaveMusicRecord_twice(t *testing.T) {
+	// setup
+	r := getTestRepository(t)
+	defer r.db.Close()
+	var post types.MusicPost
+	_ = gofakeit.Struct(&post)
+	post.MusicRecord.Duration, _ = time.ParseDuration("1m35s")
+	// first post
+	recordId, err := r.SaveMusicRecord(post)
+	require.Nil(t, err)
+	// second post
+	secondPost := post
+	_ = gofakeit.Struct(&secondPost.Person)
+	_ = gofakeit.Struct(&secondPost.Channel)
+
+	// test
+	secondRecordId, err := r.SaveMusicRecord(secondPost)
+
+	// assertions
+	require.Nil(t, err)
+	assert.Equal(t, recordId, secondRecordId)
+	tx, _ := r.db.Begin()
+	defer rollback(tx)
+	assertEqualRecordRow(t, tx, post.MusicRecord, recordId)
+	rows, err := tx.Query(
+		`
+			select
+				sender_irc,
+				chan
+			from playbot_chan
+			where
+				content = ?
+			order by date
+		`,
+		recordId,
+	)
+	require.Nil(t, err)
+	require.True(t, rows.Next())
+	var senderIrc, channelName string
+	err = rows.Scan(&senderIrc, &channelName)
+	require.Nil(t, err)
+	assert.Equal(t, post.Person.Name, senderIrc)
+	assert.Equal(t, post.Channel.Name, channelName)
+	require.True(t, rows.Next())
+	err = rows.Scan(&senderIrc, &channelName)
+	require.Nil(t, err)
+	assert.Equal(t, secondPost.Person.Name, senderIrc)
+	assert.Equal(t, secondPost.Channel.Name, channelName)
+	// assert there are no more rows
+	require.False(t, rows.Next())
+	assert.Nil(t, rows.Err())
+}

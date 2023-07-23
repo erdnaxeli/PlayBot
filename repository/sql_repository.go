@@ -44,6 +44,7 @@ func (r sqlRepository) SaveMusicRecord(post types.MusicPost) (int64, error) {
 
 	err = tx.Commit()
 	if err != nil {
+		_ = tx.Rollback()
 		return 0, err
 	}
 
@@ -69,6 +70,7 @@ func (sqlRepository) insertOrUpdateMusicRecord(tx *sql.Tx, record types.MusicRec
 				?, ?, ?, ?, ?, ?
 			)
 			on duplicate key update
+				id = last_insert_id(id),
 				type = value(type),
 				sender = value(sender),
 				title = value(title),
