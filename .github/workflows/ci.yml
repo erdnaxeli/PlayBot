@@ -23,5 +23,7 @@ jobs:
     - uses: actions/setup-go@v4
       with:
         go-version-file: 'go.mod'
+    - name: Start MariaDB
+      run: docker compose up --detach && sleep 10
     - name: Run tests
       run: go test ./...

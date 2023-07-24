@@ -11,5 +11,6 @@ type MusicRecord struct {
 	Duration time.Duration
 	Name     string
 	RecordId string
+	Source   string
 	Url      string
 }
