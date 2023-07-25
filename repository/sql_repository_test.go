@@ -2,6 +2,7 @@ package repository
 
 import (
 	"database/sql"
+	"sort"
 	"testing"
 	"time"
 
@@ -60,6 +61,14 @@ func getTestRepository(t *testing.T) sqlRepository {
 		"A MariaDB server must be listening on localhost with a user 'test', a password 'test' and a database 'test' initialized with the test-db.sql file.",
 	)
 	return r
+}
+
+func getMusicPost() types.MusicPost {
+	var post types.MusicPost
+	_ = gofakeit.Struct(&post)
+	post.MusicRecord.Duration, _ = time.ParseDuration("1m35s")
+
+	return post
 }
 
 func rollback(tx *sql.Tx) {
@@ -200,9 +209,7 @@ func TestSaveMusicRecord_once(t *testing.T) {
 	// setup
 	r := getTestRepository(t)
 	defer r.db.Close()
-	var post types.MusicPost
-	_ = gofakeit.Struct(&post)
-	post.MusicRecord.Duration, _ = time.ParseDuration("1m35s")
+	post := getMusicPost()
 
 	// test
 	recordId, err := r.SaveMusicRecord(post)
@@ -237,28 +244,35 @@ func TestSaveMusicRecord_once(t *testing.T) {
 
 func TestSaveMusicRecord_twice(t *testing.T) {
 	// setup
+
 	r := getTestRepository(t)
 	defer r.db.Close()
-	var post types.MusicPost
-	_ = gofakeit.Struct(&post)
-	post.MusicRecord.Duration, _ = time.ParseDuration("1m35s")
+
+	post := getMusicPost()
+
 	// first post
 	recordId, err := r.SaveMusicRecord(post)
 	require.Nil(t, err)
+
 	// second post
 	secondPost := post
 	_ = gofakeit.Struct(&secondPost.Person)
 	_ = gofakeit.Struct(&secondPost.Channel)
 
 	// test
+
 	secondRecordId, err := r.SaveMusicRecord(secondPost)
 
 	// assertions
+
 	require.Nil(t, err)
 	assert.Equal(t, recordId, secondRecordId)
+
 	tx, _ := r.db.Begin()
 	defer rollback(tx)
 	assertEqualRecordRow(t, tx, post.MusicRecord, recordId)
+
+	var senderIrc, channelName string
 	rows, err := tx.Query(
 		`
 			select
@@ -272,18 +286,68 @@ func TestSaveMusicRecord_twice(t *testing.T) {
 		recordId,
 	)
 	require.Nil(t, err)
+
+	// first row
 	require.True(t, rows.Next())
-	var senderIrc, channelName string
 	err = rows.Scan(&senderIrc, &channelName)
 	require.Nil(t, err)
 	assert.Equal(t, post.Person.Name, senderIrc)
 	assert.Equal(t, post.Channel.Name, channelName)
+
+	// second row
 	require.True(t, rows.Next())
 	err = rows.Scan(&senderIrc, &channelName)
 	require.Nil(t, err)
 	assert.Equal(t, secondPost.Person.Name, senderIrc)
 	assert.Equal(t, secondPost.Channel.Name, channelName)
+
 	// assert there are no more rows
 	require.False(t, rows.Next())
 	assert.Nil(t, rows.Err())
+}
+
+func TestSaveTags(t *testing.T) {
+	// setup
+
+	r := getTestRepository(t)
+	defer r.db.Close()
+
+	post := getMusicPost()
+	recordId, err := r.SaveMusicRecord(post)
+	require.Nil(t, err)
+
+	var tags []string
+	gofakeit.Slice(&tags)
+
+	// test
+
+	err = r.SaveTags(recordId, tags)
+
+	// assertions
+
+	require.Nil(t, err)
+
+	tx, _ := r.db.Begin()
+	defer rollback(tx)
+	rows, err := tx.Query(
+		`
+			select tag
+			from playbot_tags
+			where id = ?
+		`,
+		recordId,
+	)
+	require.Nil(t, err)
+
+	var savedTags []string
+	for rows.Next() {
+		var tag string
+		err = rows.Scan(&tag)
+		require.Nil(t, err)
+		savedTags = append(savedTags, tag)
+	}
+
+	sort.Strings(tags)
+	sort.Strings(savedTags)
+	assert.Equal(t, tags, savedTags)
 }
