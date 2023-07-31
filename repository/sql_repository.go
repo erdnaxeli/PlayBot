@@ -26,7 +26,7 @@ func NewSqlRepository(dsn string) (sqlRepository, error) {
 	}, nil
 }
 
-func (r sqlRepository) SaveMusicRecord(post types.MusicPost) (int64, error) {
+func (r sqlRepository) SaveMusicPost(post types.MusicPost) (int64, error) {
 	tx, err := r.db.Begin()
 	if err != nil {
 		return 0, err
