@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 
+	"github.com/erdnaxeli/PlayBot/config"
 	"github.com/erdnaxeli/PlayBot/extractors"
 	"github.com/erdnaxeli/PlayBot/extractors/ldjson"
 )
@@ -12,7 +13,7 @@ import (
 func main() {
 	msg := os.Args[1]
 
-	config, err := readConfigFile("playbot.conf")
+	config, err := config.ReadConfigFile("playbot.conf")
 	if err != nil {
 		log.Fatal(err)
 	}

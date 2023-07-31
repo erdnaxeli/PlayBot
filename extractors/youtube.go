@@ -47,6 +47,7 @@ func (e *YoutubeExtractor) Extract(recordId string) (types.MusicRecord, error) {
 		Duration: iso8601.ParseDuration(video.ContentDetails.Duration),
 		Name:     video.Snippet.Title,
 		RecordId: recordId,
+		Source:   "youtube",
 		Url:      fmt.Sprintf("https://www.youtube.com/watch?v=%s", recordId),
 	}, nil
 }
