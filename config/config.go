@@ -1,4 +1,4 @@
-package main
+package config
 
 import (
 	"encoding/json"
@@ -8,9 +8,13 @@ import (
 
 type Config struct {
 	YoutubeApiKey string `json:"youtube_api_key"`
+	DbName        string `json:"bdd"`
+	DbUser        string `json:"user"`
+	DbHost        string `json:"host"`
+	DbPassword    string `json:"passwd"`
 }
 
-func readConfigFile(filename string) (Config, error) {
+func ReadConfigFile(filename string) (Config, error) {
 	file, err := os.Open(filename)
 	if err != nil {
 		return Config{}, nil

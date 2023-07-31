@@ -41,6 +41,7 @@ func (e SoundCloudExtractor) Extract(recordId string) (types.MusicRecord, error)
 	}
 
 	record.RecordId = recordId
+	record.Source = "soundcloud"
 	return record, nil
 }
 

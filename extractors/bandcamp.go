@@ -32,5 +32,11 @@ func (e BandcampExtractor) Match(url string) (string, string) {
 }
 
 func (e BandcampExtractor) Extract(recordId string) (types.MusicRecord, error) {
-	return e.ldJsonExtractor.Extract(recordId)
+	record, err := e.ldJsonExtractor.Extract(recordId)
+	if err != nil {
+		return types.MusicRecord{}, err
+	}
+
+	record.Source = "bandcamp"
+	return record, nil
 }
