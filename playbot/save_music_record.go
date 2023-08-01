@@ -1,30 +1,39 @@
 package playbot
 
-import "github.com/erdnaxeli/PlayBot/types"
+import (
+	"fmt"
+
+	"github.com/erdnaxeli/PlayBot/types"
+)
 
 // Save a music record pointed by the URL in the given message.
 //
 // Return the matched URL (if any), and an error.
 func (p *Playbot) SaveMusicRecord(
 	msg string, person types.Person, channel types.Channel,
-) (int64, error) {
+) (int64, types.MusicRecord, error) {
 	_, musicRecord, err := p.extractor.Extract(msg)
 	if err != nil {
-		return 0, err
+		return 0, types.MusicRecord{}, err
 	}
 
-	recordId, err := p.repository.SaveMusicRecord(types.MusicPost{
+	recordId, err := p.repository.SaveMusicPost(types.MusicPost{
 		MusicRecord: musicRecord,
 		Person:      person,
 		Channel:     channel,
 	})
 	if err != nil {
-		return 0, err
+		return 0, types.MusicRecord{}, fmt.Errorf("error while saving music record: %w", err)
 	}
 
-	return recordId, nil
+	return recordId, musicRecord, nil
 }
 
 func (p *Playbot) SaveTags(musicRecordId int64, tags []string) error {
-	return p.repository.SaveTags(musicRecordId, tags)
+	err := p.repository.SaveTags(musicRecordId, tags)
+	if err != nil {
+		return fmt.Errorf("error while saving tags: %w", err)
+	}
+
+	return nil
 }

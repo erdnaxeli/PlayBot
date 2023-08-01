@@ -56,17 +56,20 @@ func main() {
 	person := types.Person{Name: os.Args[2]}
 	msg := os.Args[3]
 
-	recordId := saveMusicRecord(msg, person, channel)
+	recordId, musicRecord := saveMusicRecord(msg, person, channel)
 	saveTags(msg, recordId)
+
+	log.Println("Record saved", recordId, musicRecord)
+	printMusicRecord(recordId, musicRecord)
 }
 
-func saveMusicRecord(msg string, person types.Person, channel types.Channel) int64 {
-	recordId, err := bot.SaveMusicRecord(msg, person, channel)
+func saveMusicRecord(msg string, person types.Person, channel types.Channel) (int64, types.MusicRecord) {
+	recordId, musicRecord, err := bot.SaveMusicRecord(msg, person, channel)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	return recordId
+	return recordId, musicRecord
 }
 
 func saveTags(msg string, recordId int64) {
@@ -82,4 +85,13 @@ func saveTags(msg string, recordId int64) {
 	if err != nil {
 		log.Fatal(err)
 	}
+}
+
+func printMusicRecord(recordId int64, record types.MusicRecord) {
+	fmt.Println(recordId)
+	fmt.Println(record.RecordId)
+	fmt.Println(record.Url)
+	fmt.Println(record.Name)
+	fmt.Println(record.Band.Name)
+	fmt.Println(record.Duration.Seconds())
 }

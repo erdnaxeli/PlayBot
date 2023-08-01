@@ -212,7 +212,7 @@ func TestSaveMusicRecord_once(t *testing.T) {
 	post := getMusicPost()
 
 	// test
-	recordId, err := r.SaveMusicRecord(post)
+	recordId, err := r.SaveMusicPost(post)
 
 	// assertions
 	require.Nil(t, err)
@@ -251,7 +251,7 @@ func TestSaveMusicRecord_twice(t *testing.T) {
 	post := getMusicPost()
 
 	// first post
-	recordId, err := r.SaveMusicRecord(post)
+	recordId, err := r.SaveMusicPost(post)
 	require.Nil(t, err)
 
 	// second post
@@ -261,7 +261,7 @@ func TestSaveMusicRecord_twice(t *testing.T) {
 
 	// test
 
-	secondRecordId, err := r.SaveMusicRecord(secondPost)
+	secondRecordId, err := r.SaveMusicPost(secondPost)
 
 	// assertions
 
@@ -313,7 +313,7 @@ func TestSaveTags(t *testing.T) {
 	defer r.db.Close()
 
 	post := getMusicPost()
-	recordId, err := r.SaveMusicRecord(post)
+	recordId, err := r.SaveMusicPost(post)
 	require.Nil(t, err)
 
 	var tags []string
