@@ -11,10 +11,10 @@ import (
 // Return the matched URL (if any), and an error.
 func (p *Playbot) SaveMusicRecord(
 	msg string, person types.Person, channel types.Channel,
-) (int64, error) {
+) (int64, types.MusicRecord, error) {
 	_, musicRecord, err := p.extractor.Extract(msg)
 	if err != nil {
-		return 0, err
+		return 0, types.MusicRecord{}, err
 	}
 
 	recordId, err := p.repository.SaveMusicPost(types.MusicPost{
@@ -23,10 +23,10 @@ func (p *Playbot) SaveMusicRecord(
 		Channel:     channel,
 	})
 	if err != nil {
-		return 0, fmt.Errorf("error while saving music record: %w", err)
+		return 0, types.MusicRecord{}, fmt.Errorf("error while saving music record: %w", err)
 	}
 
-	return recordId, nil
+	return recordId, musicRecord, nil
 }
 
 func (p *Playbot) SaveTags(musicRecordId int64, tags []string) error {
