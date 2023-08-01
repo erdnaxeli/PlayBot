@@ -77,7 +77,7 @@ func saveTags(msg string, recordId int64) {
 	var tags []string
 	for _, word := range re.Split(msg, -1) {
 		if word[0] == '#' {
-			tags = append(tags, word[0:])
+			tags = append(tags, word[1:])
 		}
 	}
 
