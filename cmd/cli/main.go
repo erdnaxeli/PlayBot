@@ -93,8 +93,8 @@ func saveTags(msg string, recordId int64) []string {
 func printMusicRecord(recordId int64, record types.MusicRecord, tags []string) {
 	fmt.Println(recordId)
 	fmt.Println(record.RecordId)
-	fmt.Println(record.Url)
-	fmt.Println(record.Name)
+	fmt.Println("")
+	fmt.Println("🎉", record.Name)
 	fmt.Println(record.Band.Name)
 	fmt.Println(record.Duration.Seconds())
 
