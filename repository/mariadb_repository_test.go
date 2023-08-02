@@ -53,8 +53,8 @@ func assertEqualRecordRow(t *testing.T, tx *sql.Tx, record types.MusicRecord, ro
 	assert.Equal(t, record.RecordId, externalId.String)
 }
 
-func getTestRepository(t *testing.T) sqlRepository {
-	r, err := NewSqlRepository("test:test@(localhost)/test")
+func getTestRepository(t *testing.T) mariaDbRepository {
+	r, err := NewMariaDbRepository("test:test@(localhost)/test")
 	require.Nil(
 		t,
 		err,

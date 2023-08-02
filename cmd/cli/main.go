@@ -32,7 +32,7 @@ func init() {
 		},
 	)
 
-	repository, err := repository.NewSqlRepository(
+	repository, err := repository.NewMariaDbRepository(
 		fmt.Sprintf(
 			"%s:%s@(%s)/%s",
 			config.DbUser,
