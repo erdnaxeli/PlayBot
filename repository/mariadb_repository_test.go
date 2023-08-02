@@ -53,8 +53,8 @@ func assertEqualRecordRow(t *testing.T, tx *sql.Tx, record types.MusicRecord, ro
 	assert.Equal(t, record.RecordId, externalId.String)
 }
 
-func getTestRepository(t *testing.T) sqlRepository {
-	r, err := NewSqlRepository("test:test@(localhost)/test")
+func getTestRepository(t *testing.T) mariaDbRepository {
+	r, err := NewMariaDbRepository("test:test@(localhost)/test")
 	require.Nil(
 		t,
 		err,
@@ -125,6 +125,42 @@ func TestInsertOrUpdateMusicRecord_Update(t *testing.T) {
 	require.Nil(t, err)
 	assert.Equal(t, recordId, newRecordId)
 	assertEqualRecordRow(t, tx, record, recordId)
+}
+
+func TestGetTags_noTags(t *testing.T) {
+	// setup
+	r := getTestRepository(t)
+	defer r.db.Close()
+
+	// test
+	tags, err := r.GetTags(1987654334)
+
+	// assertions
+	require.Nil(t, err)
+	assert.Equal(t, []string{}, tags)
+}
+
+func TestGetTags_tags(t *testing.T) {
+	// setup
+	r := getTestRepository(t)
+	defer r.db.Close()
+
+	// test data
+	musicPost := getMusicPost()
+	tags := []string{"some", "tags", "to", "test"}
+	recordId, err := r.SaveMusicPost(musicPost)
+	require.Nil(t, err)
+	err = r.SaveTags(recordId, tags)
+	require.Nil(t, err)
+
+	// test
+	foundTags, err := r.GetTags(recordId)
+
+	// assertions
+	require.Nil(t, err)
+	sort.Strings(tags)
+	sort.Strings(foundTags)
+	assert.Equal(t, tags, foundTags)
 }
 
 func TestSaveChannelPost_ok(t *testing.T) {

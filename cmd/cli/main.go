@@ -32,7 +32,7 @@ func init() {
 		},
 	)
 
-	repository, err := repository.NewSqlRepository(
+	repository, err := repository.NewMariaDbRepository(
 		fmt.Sprintf(
 			"%s:%s@(%s)/%s",
 			config.DbUser,
@@ -58,7 +58,8 @@ func main() {
 	msg := os.Args[3]
 
 	recordId, musicRecord := saveMusicRecord(msg, person, channel)
-	tags := saveTags(msg, recordId)
+	saveTags(msg, recordId)
+	tags := getTags(recordId)
 
 	log.Println("Record saved", recordId, musicRecord)
 	printMusicRecord(recordId, musicRecord, tags)
@@ -73,7 +74,7 @@ func saveMusicRecord(msg string, person types.Person, channel types.Channel) (in
 	return recordId, musicRecord
 }
 
-func saveTags(msg string, recordId int64) []string {
+func saveTags(msg string, recordId int64) {
 	re := regexp.MustCompile(`\s+`)
 	var tags []string
 	for _, word := range re.Split(msg, -1) {
@@ -83,6 +84,13 @@ func saveTags(msg string, recordId int64) []string {
 	}
 
 	err := bot.SaveTags(recordId, tags)
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+
+func getTags(recordId int64) []string {
+	tags, err := bot.GetTags(recordId)
 	if err != nil {
 		log.Fatal(err)
 	}

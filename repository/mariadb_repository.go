@@ -7,26 +7,59 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 )
 
-type sqlRepository struct {
+type mariaDbRepository struct {
 	db *sql.DB
 }
 
-func NewSqlRepository(dsn string) (sqlRepository, error) {
+func NewMariaDbRepository(dsn string) (mariaDbRepository, error) {
 	db, err := sql.Open("mysql", dsn)
 	if err != nil {
-		return sqlRepository{}, err
+		return mariaDbRepository{}, err
 	}
 
 	if err := db.Ping(); err != nil {
-		return sqlRepository{}, err
+		return mariaDbRepository{}, err
 	}
 
-	return sqlRepository{
+	return mariaDbRepository{
 		db,
 	}, nil
 }
 
-func (r sqlRepository) SaveMusicPost(post types.MusicPost) (int64, error) {
+func (r mariaDbRepository) GetTags(musicRecordId int64) ([]string, error) {
+	rows, err := r.db.Query(
+		`
+			select tag
+			from playbot_tags
+			where id = ?
+		`,
+		musicRecordId,
+	)
+	if err != nil {
+		return []string{}, err
+	}
+
+	var tag string
+	tags := make([]string, 0)
+
+	for rows.Next() {
+		err = rows.Scan(&tag)
+		if err != nil {
+			return []string{}, err
+		}
+
+		tags = append(tags, tag)
+	}
+
+	err = rows.Err()
+	if err != nil {
+		return []string{}, err
+	}
+
+	return tags, nil
+}
+
+func (r mariaDbRepository) SaveMusicPost(post types.MusicPost) (int64, error) {
 	tx, err := r.db.Begin()
 	if err != nil {
 		return 0, err
@@ -51,7 +84,7 @@ func (r sqlRepository) SaveMusicPost(post types.MusicPost) (int64, error) {
 	return recordId, nil
 }
 
-func (r sqlRepository) SaveTags(musicRecordId int64, tags []string) error {
+func (r mariaDbRepository) SaveTags(musicRecordId int64, tags []string) error {
 	tx, err := r.db.Begin()
 	if err != nil {
 		return err
@@ -88,7 +121,7 @@ func (r sqlRepository) SaveTags(musicRecordId int64, tags []string) error {
 	return nil
 }
 
-func (sqlRepository) insertOrUpdateMusicRecord(tx *sql.Tx, record types.MusicRecord) (int64, error) {
+func (mariaDbRepository) insertOrUpdateMusicRecord(tx *sql.Tx, record types.MusicRecord) (int64, error) {
 	result, err := tx.Exec(
 		`
 			insert into playbot (
@@ -129,7 +162,7 @@ func (sqlRepository) insertOrUpdateMusicRecord(tx *sql.Tx, record types.MusicRec
 	return recordId, nil
 }
 
-func (sqlRepository) saveChannelPost(
+func (mariaDbRepository) saveChannelPost(
 	tx *sql.Tx, recordId int64, person types.Person, channel types.Channel,
 ) error {
 	_, err := tx.Exec(
