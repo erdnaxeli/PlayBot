@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 	"regexp"
+	"strings"
 
 	"github.com/erdnaxeli/PlayBot/config"
 	"github.com/erdnaxeli/PlayBot/extractors"
@@ -57,10 +58,10 @@ func main() {
 	msg := os.Args[3]
 
 	recordId, musicRecord := saveMusicRecord(msg, person, channel)
-	saveTags(msg, recordId)
+	tags := saveTags(msg, recordId)
 
 	log.Println("Record saved", recordId, musicRecord)
-	printMusicRecord(recordId, musicRecord)
+	printMusicRecord(recordId, musicRecord, tags)
 }
 
 func saveMusicRecord(msg string, person types.Person, channel types.Channel) (int64, types.MusicRecord) {
@@ -72,7 +73,7 @@ func saveMusicRecord(msg string, person types.Person, channel types.Channel) (in
 	return recordId, musicRecord
 }
 
-func saveTags(msg string, recordId int64) {
+func saveTags(msg string, recordId int64) []string {
 	re := regexp.MustCompile(`\s+`)
 	var tags []string
 	for _, word := range re.Split(msg, -1) {
@@ -85,13 +86,20 @@ func saveTags(msg string, recordId int64) {
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	return tags
 }
 
-func printMusicRecord(recordId int64, record types.MusicRecord) {
+func printMusicRecord(recordId int64, record types.MusicRecord, tags []string) {
 	fmt.Println(recordId)
 	fmt.Println(record.RecordId)
 	fmt.Println(record.Url)
 	fmt.Println(record.Name)
 	fmt.Println(record.Band.Name)
 	fmt.Println(record.Duration.Seconds())
+
+	for idx := range tags {
+		tags[idx] = "#" + tags[idx]
+	}
+	fmt.Println(strings.Join(tags, " "))
 }
