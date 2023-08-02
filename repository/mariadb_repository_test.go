@@ -127,6 +127,42 @@ func TestInsertOrUpdateMusicRecord_Update(t *testing.T) {
 	assertEqualRecordRow(t, tx, record, recordId)
 }
 
+func TestGetTags_noTags(t *testing.T) {
+	// setup
+	r := getTestRepository(t)
+	defer r.db.Close()
+
+	// test
+	tags, err := r.GetTags(1987654334)
+
+	// assertions
+	require.Nil(t, err)
+	assert.Equal(t, []string{}, tags)
+}
+
+func TestGetTags_tags(t *testing.T) {
+	// setup
+	r := getTestRepository(t)
+	defer r.db.Close()
+
+	// test data
+	musicPost := getMusicPost()
+	tags := []string{"some", "tags", "to", "test"}
+	recordId, err := r.SaveMusicPost(musicPost)
+	require.Nil(t, err)
+	err = r.SaveTags(recordId, tags)
+	require.Nil(t, err)
+
+	// test
+	foundTags, err := r.GetTags(recordId)
+
+	// assertions
+	require.Nil(t, err)
+	sort.Strings(tags)
+	sort.Strings(foundTags)
+	assert.Equal(t, tags, foundTags)
+}
+
 func TestSaveChannelPost_ok(t *testing.T) {
 	// setup
 	r := getTestRepository(t)
