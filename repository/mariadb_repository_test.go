@@ -90,10 +90,11 @@ func TestInsertOrUpdateMusicRecord_Insert(t *testing.T) {
 	tx, _ := r.db.Begin()
 	defer func() { _ = tx.Rollback() }()
 
-	recordId, err := r.insertOrUpdateMusicRecord(tx, record)
+	recordId, isNew, err := r.insertOrUpdateMusicRecord(tx, record)
 
 	require.Nil(t, err)
 	assertEqualRecordRow(t, tx, record, recordId)
+	assert.True(t, isNew)
 
 }
 
@@ -111,8 +112,9 @@ func TestInsertOrUpdateMusicRecord_Update(t *testing.T) {
 	defer r.db.Close()
 	tx, _ := r.db.Begin()
 	defer rollback(tx)
-	recordId, err := r.insertOrUpdateMusicRecord(tx, record)
+	recordId, isNew, err := r.insertOrUpdateMusicRecord(tx, record)
 	require.Nil(t, err)
+	require.True(t, isNew)
 
 	record.Band.Name = "NewBand"
 	record.Duration += 1
@@ -120,11 +122,12 @@ func TestInsertOrUpdateMusicRecord_Update(t *testing.T) {
 	record.RecordId = "NewRecordId"
 	record.Source = "NewSource"
 
-	newRecordId, err := r.insertOrUpdateMusicRecord(tx, record)
+	newRecordId, isNew, err := r.insertOrUpdateMusicRecord(tx, record)
 
 	require.Nil(t, err)
 	assert.Equal(t, recordId, newRecordId)
 	assertEqualRecordRow(t, tx, record, recordId)
+	assert.False(t, isNew)
 }
 
 func TestGetTags_noTags(t *testing.T) {
@@ -148,8 +151,9 @@ func TestGetTags_tags(t *testing.T) {
 	// test data
 	musicPost := getMusicPost()
 	tags := []string{"some", "tags", "to", "test"}
-	recordId, err := r.SaveMusicPost(musicPost)
+	recordId, isNew, err := r.SaveMusicPost(musicPost)
 	require.Nil(t, err)
+	require.True(t, isNew)
 	err = r.SaveTags(recordId, tags)
 	require.Nil(t, err)
 
@@ -172,8 +176,9 @@ func TestSaveChannelPost_ok(t *testing.T) {
 	var record types.MusicRecord
 	_ = gofakeit.Struct(&record)
 	record.Duration, _ = time.ParseDuration("1m35s")
-	recordId, err := r.insertOrUpdateMusicRecord(tx, record)
+	recordId, isNew, err := r.insertOrUpdateMusicRecord(tx, record)
 	require.Nil(t, err)
+	require.True(t, isNew)
 
 	// data to test
 	var person types.Person
@@ -248,10 +253,11 @@ func TestSaveMusicRecord_once(t *testing.T) {
 	post := getMusicPost()
 
 	// test
-	recordId, err := r.SaveMusicPost(post)
+	recordId, isNew, err := r.SaveMusicPost(post)
 
 	// assertions
 	require.Nil(t, err)
+	assert.True(t, isNew)
 	tx, _ := r.db.Begin()
 	defer rollback(tx)
 	assertEqualRecordRow(t, tx, post.MusicRecord, recordId)
@@ -287,8 +293,9 @@ func TestSaveMusicRecord_twice(t *testing.T) {
 	post := getMusicPost()
 
 	// first post
-	recordId, err := r.SaveMusicPost(post)
+	recordId, isNew, err := r.SaveMusicPost(post)
 	require.Nil(t, err)
+	require.True(t, isNew)
 
 	// second post
 	secondPost := post
@@ -297,11 +304,12 @@ func TestSaveMusicRecord_twice(t *testing.T) {
 
 	// test
 
-	secondRecordId, err := r.SaveMusicPost(secondPost)
+	secondRecordId, isNew, err := r.SaveMusicPost(secondPost)
 
 	// assertions
 
 	require.Nil(t, err)
+	assert.False(t, isNew)
 	assert.Equal(t, recordId, secondRecordId)
 
 	tx, _ := r.db.Begin()
@@ -349,8 +357,9 @@ func TestSaveTags(t *testing.T) {
 	defer r.db.Close()
 
 	post := getMusicPost()
-	recordId, err := r.SaveMusicPost(post)
+	recordId, isNew, err := r.SaveMusicPost(post)
 	require.Nil(t, err)
+	require.True(t, isNew)
 
 	var tags []string
 	gofakeit.Slice(&tags)

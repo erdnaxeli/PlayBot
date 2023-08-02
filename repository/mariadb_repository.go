@@ -59,29 +59,29 @@ func (r mariaDbRepository) GetTags(musicRecordId int64) ([]string, error) {
 	return tags, nil
 }
 
-func (r mariaDbRepository) SaveMusicPost(post types.MusicPost) (int64, error) {
+func (r mariaDbRepository) SaveMusicPost(post types.MusicPost) (int64, bool, error) {
 	tx, err := r.db.Begin()
 	if err != nil {
-		return 0, err
+		return 0, false, err
 	}
 
-	recordId, err := r.insertOrUpdateMusicRecord(tx, post.MusicRecord)
+	recordId, isNew, err := r.insertOrUpdateMusicRecord(tx, post.MusicRecord)
 	if err != nil {
-		return 0, err
+		return 0, false, err
 	}
 
 	err = r.saveChannelPost(tx, recordId, post.Person, post.Channel)
 	if err != nil {
-		return 0, err
+		return recordId, isNew, err
 	}
 
 	err = tx.Commit()
 	if err != nil {
 		_ = tx.Rollback()
-		return 0, err
+		return 0, false, err
 	}
 
-	return recordId, nil
+	return recordId, isNew, nil
 }
 
 func (r mariaDbRepository) SaveTags(musicRecordId int64, tags []string) error {
@@ -121,7 +121,7 @@ func (r mariaDbRepository) SaveTags(musicRecordId int64, tags []string) error {
 	return nil
 }
 
-func (mariaDbRepository) insertOrUpdateMusicRecord(tx *sql.Tx, record types.MusicRecord) (int64, error) {
+func (mariaDbRepository) insertOrUpdateMusicRecord(tx *sql.Tx, record types.MusicRecord) (int64, bool, error) {
 	result, err := tx.Exec(
 		`
 			insert into playbot (
@@ -151,15 +151,20 @@ func (mariaDbRepository) insertOrUpdateMusicRecord(tx *sql.Tx, record types.Musi
 		record.RecordId,
 	)
 	if err != nil {
-		return 0, err
+		return 0, false, err
 	}
 
 	recordId, err := result.LastInsertId()
 	if err != nil {
-		return 0, err
+		return 0, false, err
 	}
 
-	return recordId, nil
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return 0, false, err
+	}
+
+	return recordId, rowsAffected == 1, nil
 }
 
 func (mariaDbRepository) saveChannelPost(

@@ -57,21 +57,21 @@ func main() {
 	person := types.Person{Name: os.Args[2]}
 	msg := os.Args[3]
 
-	recordId, musicRecord := saveMusicRecord(msg, person, channel)
+	recordId, musicRecord, isNew := saveMusicRecord(msg, person, channel)
 	saveTags(msg, recordId)
 	tags := getTags(recordId)
 
 	log.Println("Record saved", recordId, musicRecord)
-	printMusicRecord(recordId, musicRecord, tags)
+	printMusicRecord(recordId, musicRecord, tags, isNew)
 }
 
-func saveMusicRecord(msg string, person types.Person, channel types.Channel) (int64, types.MusicRecord) {
-	recordId, musicRecord, err := bot.SaveMusicRecord(msg, person, channel)
+func saveMusicRecord(msg string, person types.Person, channel types.Channel) (int64, types.MusicRecord, bool) {
+	recordId, musicRecord, isNew, err := bot.SaveMusicRecord(msg, person, channel)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	return recordId, musicRecord
+	return recordId, musicRecord, isNew
 }
 
 func saveTags(msg string, recordId int64) {
@@ -98,8 +98,12 @@ func getTags(recordId int64) []string {
 	return tags
 }
 
-func printMusicRecord(recordId int64, record types.MusicRecord, tags []string) {
-	fmt.Println(recordId)
+func printMusicRecord(recordId int64, record types.MusicRecord, tags []string, isNew bool) {
+	if isNew {
+		fmt.Print("+", recordId, "\n")
+	} else {
+		fmt.Println(recordId)
+	}
 	fmt.Println(record.RecordId)
 	fmt.Println("")
 	fmt.Println("🎉", record.Name)
