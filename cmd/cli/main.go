@@ -11,7 +11,7 @@ import (
 	"github.com/erdnaxeli/PlayBot/extractors"
 	"github.com/erdnaxeli/PlayBot/extractors/ldjson"
 	"github.com/erdnaxeli/PlayBot/playbot"
-	"github.com/erdnaxeli/PlayBot/repository"
+	"github.com/erdnaxeli/PlayBot/repository/mariadb"
 	"github.com/erdnaxeli/PlayBot/types"
 )
 
@@ -32,7 +32,7 @@ func init() {
 		},
 	)
 
-	repository, err := repository.NewMariaDbRepository(
+	repository, err := mariadb.New(
 		fmt.Sprintf(
 			"%s:%s@(%s)/%s",
 			config.DbUser,
