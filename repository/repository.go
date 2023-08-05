@@ -12,3 +12,8 @@ type Repository interface {
 	// Save the given tags for the music record pointed by the given id.
 	SaveTags(musicRecordId int64, tags []string) error
 }
+
+type SearchResult struct {
+	Id int64
+	types.MusicRecord
+}

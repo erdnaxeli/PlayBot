@@ -1,7 +1,11 @@
 package repository
 
 import (
+	"context"
 	"database/sql"
+	"log"
+	"strings"
+	"time"
 
 	"github.com/erdnaxeli/PlayBot/types"
 	_ "github.com/go-sql-driver/mysql"
@@ -119,6 +123,84 @@ func (r mariaDbRepository) SaveTags(musicRecordId int64, tags []string) error {
 	}
 
 	return nil
+}
+
+func (r mariaDbRepository) SearchMusicRecord(ctx context.Context, channel types.Channel, words []string, tags []string) (chan SearchResult, error) {
+	query := `
+		select distinct
+			p.id,
+			p.sender,
+			p.title,
+			p.url,
+			p.duration,
+			p.external_id,
+			p.type
+		from playbot p
+		join playbot_chan pc
+			on p.id = pc.content
+		where
+			p.playlist is false
+	`
+
+	var dbArgs []any
+	var filters []string
+	if channel.Name != "" {
+		filters = append(filters, "pc.chan = ?")
+		dbArgs = append(dbArgs, channel.Name)
+	}
+	for _, word := range words {
+		filters = append(filters, "concat(p.sender, ' ', p.title) like ?")
+		dbArgs = append(dbArgs, "%"+word+"%")
+	}
+	for _, tag := range tags {
+		filters = append(filters, "p.id in (select pt.id from playbot_tags pt where pt.tag = ?)")
+		dbArgs = append(dbArgs, tag)
+	}
+
+	query += " and " + strings.Join(filters, " and ") + " "
+	query += " order by rand()"
+
+	ch := make(chan SearchResult)
+	rows, err := r.db.Query(query, dbArgs...)
+	if err != nil {
+		return nil, err
+	}
+
+	go func() {
+		defer func() { _ = rows.Close() }()
+		defer close(ch)
+
+		for rows.Next() {
+			var id, duration int64
+			var sender, title, url, recordId, source string
+			err := rows.Scan(&id, &sender, &title, &url, &duration, &recordId, &source)
+			if err != nil {
+				log.Printf("Error while fetching rows after search: %s", err)
+				return
+			}
+
+			searchResult := SearchResult{
+				id,
+				types.MusicRecord{
+					Band:     types.Band{Name: sender},
+					Duration: time.Duration(duration * int64(time.Second)),
+					Name:     title,
+					RecordId: recordId,
+					Source:   source,
+					Url:      url,
+				},
+			}
+
+			select {
+			case <-ctx.Done():
+				return
+			case ch <- searchResult:
+			}
+		}
+	}()
+
+	return ch, nil
+
 }
 
 func (mariaDbRepository) insertOrUpdateMusicRecord(tx *sql.Tx, record types.MusicRecord) (int64, bool, error) {
