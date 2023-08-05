@@ -6,14 +6,15 @@ import (
 	"strings"
 	"time"
 
+	"github.com/erdnaxeli/PlayBot/playbot"
 	"github.com/erdnaxeli/PlayBot/types"
 )
 
 func (r mariaDbRepository) SearchMusicRecord(
 	ctx context.Context, channel types.Channel, words []string, tags []string,
-) (chan searchResult, error) {
+) (chan playbot.SearchResult, error) {
 	query, dbArgs := makeSearchQuery(channel.Name, words, tags)
-	ch := make(chan searchResult)
+	ch := make(chan playbot.SearchResult)
 	rows, err := r.db.Query(query, dbArgs...)
 	if err != nil {
 		return nil, err

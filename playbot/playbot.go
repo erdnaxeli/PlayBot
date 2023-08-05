@@ -1,6 +1,8 @@
 package playbot
 
 import (
+	"context"
+
 	"github.com/erdnaxeli/PlayBot/extractors"
 	"github.com/erdnaxeli/PlayBot/types"
 )
@@ -14,6 +16,12 @@ type Repository interface {
 	SaveMusicPost(types.MusicPost) (int64, bool, error)
 	// Save the given tags for the music record pointed by the given id.
 	SaveTags(musicRecordId int64, tags []string) error
+	// Search for a music record. It returns a channel to stream SearchResult objects.
+	// Closing the channel will produce a panic. If you want to notify than no more
+	// results will be needed, cancel the context.
+	SearchMusicRecord(
+		ctx context.Context, channel types.Channel, words []string, tags []string,
+	) (chan SearchResult, error)
 }
 
 type SearchResult interface {
