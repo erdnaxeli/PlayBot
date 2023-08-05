@@ -1,4 +1,4 @@
-package repository
+package mariadb
 
 import (
 	"context"
@@ -55,7 +55,7 @@ func assertEqualRecordRow(t *testing.T, tx *sql.Tx, record types.MusicRecord, ro
 }
 
 func getTestRepository(t *testing.T) mariaDbRepository {
-	r, err := NewMariaDbRepository("test:test@(localhost)/test")
+	r, err := New("test:test@(localhost)/test")
 	require.Nil(
 		t,
 		err,
@@ -74,6 +74,19 @@ func getMusicPost() types.MusicPost {
 
 func rollback(tx *sql.Tx) {
 	_ = tx.Rollback()
+}
+
+func TestSearchResult(t *testing.T) {
+	var record types.MusicRecord
+	_ = gofakeit.Struct(&record)
+
+	result := searchResult{
+		id:          42,
+		musicRecord: record,
+	}
+
+	assert.Equal(t, result.id, result.Id())
+	assert.Equal(t, result.musicRecord, result.MusicRecord())
 }
 
 func TestInsertOrUpdateMusicRecord_Insert(t *testing.T) {
@@ -524,22 +537,22 @@ func TestSearchMusicRecord_ok(t *testing.T) {
 	// assertions
 
 	// get all results
-	var results []SearchResult
+	var results []searchResult
 	for r := range ch {
 		results = append(results, r)
 	}
-	sort.Slice(results, func(i, j int) bool { return results[i].Id < results[j].Id })
+	sort.Slice(results, func(i, j int) bool { return results[i].id < results[j].id })
 
 	assert.Equal(
 		t,
-		[]SearchResult{
+		[]searchResult{
 			{
-				Id:          post1RecordId,
-				MusicRecord: post1.MusicRecord,
+				id:          post1RecordId,
+				musicRecord: post1.MusicRecord,
 			},
 			{
-				Id:          post4RecordId,
-				MusicRecord: post4.MusicRecord,
+				id:          post4RecordId,
+				musicRecord: post4.MusicRecord,
 			},
 		},
 		results,
@@ -562,7 +575,7 @@ func TestSearchMusicRecord_noResult(t *testing.T) {
 	// assertions
 
 	// get all results
-	var results []SearchResult
+	var results []searchResult
 	for r := range ch {
 		results = append(results, r)
 	}
