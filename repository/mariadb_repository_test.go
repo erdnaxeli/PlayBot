@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"context"
 	"database/sql"
 	"sort"
 	"testing"
@@ -137,9 +138,9 @@ func TestGetTags_noTags(t *testing.T) {
 
 	// test
 	tags, err := r.GetTags(1987654334)
+	require.Nil(t, err)
 
 	// assertions
-	require.Nil(t, err)
 	assert.Equal(t, []string{}, tags)
 }
 
@@ -159,9 +160,9 @@ func TestGetTags_tags(t *testing.T) {
 
 	// test
 	foundTags, err := r.GetTags(recordId)
+	require.Nil(t, err)
 
 	// assertions
-	require.Nil(t, err)
 	sort.Strings(tags)
 	sort.Strings(foundTags)
 	assert.Equal(t, tags, foundTags)
@@ -188,9 +189,9 @@ func TestSaveChannelPost_ok(t *testing.T) {
 
 	// test
 	err = r.saveChannelPost(tx, recordId, person, channel)
+	require.Nil(t, err)
 
 	// assertions
-	require.Nil(t, err)
 	rows, err := tx.Query(
 		`
 			select
@@ -254,9 +255,9 @@ func TestSaveMusicRecord_once(t *testing.T) {
 
 	// test
 	recordId, isNew, err := r.SaveMusicPost(post)
+	require.Nil(t, err)
 
 	// assertions
-	require.Nil(t, err)
 	assert.True(t, isNew)
 	tx, _ := r.db.Begin()
 	defer rollback(tx)
@@ -305,10 +306,10 @@ func TestSaveMusicRecord_twice(t *testing.T) {
 	// test
 
 	secondRecordId, isNew, err := r.SaveMusicPost(secondPost)
+	require.Nil(t, err)
 
 	// assertions
 
-	require.Nil(t, err)
 	assert.False(t, isNew)
 	assert.Equal(t, recordId, secondRecordId)
 
@@ -367,10 +368,9 @@ func TestSaveTags(t *testing.T) {
 	// test
 
 	err = r.SaveTags(recordId, tags)
+	require.Nil(t, err)
 
 	// assertions
-
-	require.Nil(t, err)
 
 	tx, _ := r.db.Begin()
 	defer rollback(tx)
@@ -395,4 +395,217 @@ func TestSaveTags(t *testing.T) {
 	sort.Strings(tags)
 	sort.Strings(savedTags)
 	assert.Equal(t, tags, savedTags)
+}
+
+func TestSearchMusicRecord_ok(t *testing.T) {
+	// setup
+
+	r := getTestRepository(t)
+	channel1 := gofakeit.DomainName()
+	channel2 := gofakeit.DomainName()
+
+	// A post in channel1 matching:
+	// - words "class" and "bol"
+	// - tags "movie" and "french"
+	post1 := getMusicPost()
+	post1.Channel.Name = channel1
+	post1.MusicRecord.Name = "La Classe Américaine"
+	post1.MusicRecord.Band.Name = "George Abitbol"
+	post1RecordId, isNew, err := r.SaveMusicPost(post1)
+	require.True(t, isNew)
+	require.Nil(t, err)
+	err = r.SaveTags(post1RecordId, []string{"movie", "french", "classic"})
+	require.Nil(t, err)
+
+	// A post in channel1 matching:
+	// - word "class" but not "bol"
+	// - tags "movie" and "french"
+	post2 := getMusicPost()
+	post2.Channel.Name = channel1
+	post2.MusicRecord.Name = "La Classe Américaine"
+	post2.MusicRecord.Band.Name = "George Brassens"
+	post2RecordId, isNew, err := r.SaveMusicPost(post2)
+	require.True(t, isNew)
+	require.Nil(t, err)
+	err = r.SaveTags(post2RecordId, []string{"movie", "french", "wrong"})
+	require.Nil(t, err)
+
+	// A post in channel1 matching:
+	// - words "class" and "bol"
+	// - tag "movie" but not "french"
+	post3 := getMusicPost()
+	post3.Channel.Name = channel1
+	post3.MusicRecord.Name = "La Classe Américaine"
+	post3.MusicRecord.Band.Name = "George Abitbol"
+	post3RecordId, isNew, err := r.SaveMusicPost(post3)
+	require.True(t, isNew)
+	require.Nil(t, err)
+	err = r.SaveTags(post3RecordId, []string{"movie", "english", "classic"})
+	require.Nil(t, err)
+
+	// A post in channel1 matching:
+	// - words "class" and "bol"
+	// - tags "movie" and "french"
+	post4 := getMusicPost()
+	post4.Channel.Name = channel1
+	post4.MusicRecord.Name = "George Abitbol, a memorial"
+	post4.MusicRecord.Band.Name = "The American Class Fan Club"
+	post4RecordId, isNew, err := r.SaveMusicPost(post4)
+	require.True(t, isNew)
+	require.Nil(t, err)
+	err = r.SaveTags(post4RecordId, []string{"movie", "french", "documentary"})
+	require.Nil(t, err)
+
+	// A post in channel2 matching:
+	// - words "class" and "bol"
+	// - tags "movie" and "french"
+	post5 := getMusicPost()
+	post5.Channel.Name = channel2
+	post5.MusicRecord.Name = "La Classe Américaine"
+	post5.MusicRecord.Band.Name = "George Abitbol"
+	post5RecordId, isNew, err := r.SaveMusicPost(post5)
+	require.True(t, isNew)
+	require.Nil(t, err)
+	err = r.SaveTags(post5RecordId, []string{"movie", "french", "classic"})
+	require.Nil(t, err)
+
+	// A post in channel2 matching:
+	// - word "class" but not "bol"
+	// - tags "movie" and "french"
+	post6 := getMusicPost()
+	post6.Channel.Name = channel2
+	post6.MusicRecord.Name = "La Classe Américaine"
+	post6.MusicRecord.Band.Name = "George Brassens"
+	post6RecordId, isNew, err := r.SaveMusicPost(post6)
+	require.True(t, isNew)
+	require.Nil(t, err)
+	err = r.SaveTags(post6RecordId, []string{"movie", "french", "wrong"})
+	require.Nil(t, err)
+
+	// A post in channel2 matching:
+	// - words "class" and "bol"
+	// - tag "movie" but not "french"
+	post7 := getMusicPost()
+	post7.Channel.Name = channel2
+	post7.MusicRecord.Name = "La Classe Américaine"
+	post7.MusicRecord.Band.Name = "George Abitbol"
+	post7RecordId, isNew, err := r.SaveMusicPost(post7)
+	require.True(t, isNew)
+	require.Nil(t, err)
+	err = r.SaveTags(post7RecordId, []string{"movie", "english", "classic"})
+	require.Nil(t, err)
+
+	// A post in channel2 matching:
+	// - words "class" and "bol"
+	// - tags "movie" and "french"
+	post8 := getMusicPost()
+	post8.Channel.Name = channel2
+	post8.MusicRecord.Name = "George Abitbol, a memorial"
+	post8.MusicRecord.Band.Name = "The American Class Fan Club"
+	post8RecordId, isNew, err := r.SaveMusicPost(post8)
+	require.True(t, isNew)
+	require.Nil(t, err)
+	err = r.SaveTags(post8RecordId, []string{"movie", "french", "documentary"})
+	require.Nil(t, err)
+
+	// test
+
+	// A query to search music records in channel1 matching:
+	// - words "class" and "bol"
+	// - tags "movie" and "french"
+	ch, err := r.SearchMusicRecord(
+		context.Background(),
+		types.Channel{Name: channel1},
+		[]string{"class", "bol"},
+		[]string{"movie", "french"},
+	)
+	require.Nil(t, err)
+
+	// assertions
+
+	// get all results
+	var results []SearchResult
+	for r := range ch {
+		results = append(results, r)
+	}
+	sort.Slice(results, func(i, j int) bool { return results[i].Id < results[j].Id })
+
+	assert.Equal(
+		t,
+		[]SearchResult{
+			{
+				Id:          post1RecordId,
+				MusicRecord: post1.MusicRecord,
+			},
+			{
+				Id:          post4RecordId,
+				MusicRecord: post4.MusicRecord,
+			},
+		},
+		results,
+	)
+}
+
+func TestSearchMusicRecord_noResult(t *testing.T) {
+	// setup
+	r := getTestRepository(t)
+
+	// test
+	ch, err := r.SearchMusicRecord(
+		context.Background(),
+		types.Channel{Name: gofakeit.DomainName()},
+		[]string{},
+		[]string{},
+	)
+	require.Nil(t, err)
+
+	// assertions
+
+	// get all results
+	var results []SearchResult
+	for r := range ch {
+		results = append(results, r)
+	}
+
+	assert.Empty(t, results)
+}
+
+func TestSearchMusicRecord_contextDone(t *testing.T) {
+	// setup
+
+	r := getTestRepository(t)
+	channel := gofakeit.DomainName()
+
+	// create 10 posts in channel
+	for i := 0; i < 10; i++ {
+		post := getMusicPost()
+		post.Channel.Name = channel
+		_, isNew, err := r.SaveMusicPost(post)
+		require.True(t, isNew)
+		require.Nil(t, err)
+	}
+
+	ctx := context.Background()
+	ctx, cancel := context.WithCancel(ctx)
+
+	// test
+
+	ch, err := r.SearchMusicRecord(
+		ctx,
+		types.Channel{Name: channel},
+		[]string{},
+		[]string{},
+	)
+	require.Nil(t, err)
+
+	// assertions
+
+	// get a result
+	_, ok := <-ch
+	assert.True(t, ok)
+	// cancel the context
+	cancel()
+	// get another result
+	_, ok = <-ch
+	assert.False(t, ok)
 }
