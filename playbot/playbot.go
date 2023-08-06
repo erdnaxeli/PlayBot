@@ -34,8 +34,8 @@ type Playbot struct {
 	repository Repository
 }
 
-func New(extractor extractors.MultipleSourcesExtractor, repository Repository) *Playbot {
-	return &Playbot{
+func New(extractor extractors.MultipleSourcesExtractor, repository Repository) Playbot {
+	return Playbot{
 		extractor:  extractor,
 		repository: repository,
 	}

@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"regexp"
 	"strings"
 
 	"github.com/erdnaxeli/PlayBot/config"
@@ -12,12 +11,19 @@ import (
 	"github.com/erdnaxeli/PlayBot/extractors/ldjson"
 	"github.com/erdnaxeli/PlayBot/playbot"
 	"github.com/erdnaxeli/PlayBot/repository/mariadb"
+	"github.com/erdnaxeli/PlayBot/textbot"
 	"github.com/erdnaxeli/PlayBot/types"
 )
 
-var bot *playbot.Playbot
+func main() {
+	if len(os.Args) != 4 {
+		log.Fatalf("Usage: %s CHANNEL PERSON MESSAGE", os.Args[0])
+	}
 
-func init() {
+	channel := os.Args[1]
+	person := os.Args[2]
+	msg := os.Args[3]
+
 	config, err := config.ReadConfigFile("playbot.conf")
 	if err != nil {
 		log.Fatal(err)
@@ -45,60 +51,30 @@ func init() {
 		log.Fatal(err)
 	}
 
-	bot = playbot.New(extractor, repository)
-}
-
-func main() {
-	if len(os.Args) != 4 {
-		log.Fatalf("Usage: %s CHANNEL PERSON MESSAGE", os.Args[0])
-	}
-
-	channel := types.Channel{Name: os.Args[1]}
-	person := types.Person{Name: os.Args[2]}
-	msg := os.Args[3]
-
-	recordId, musicRecord, isNew := saveMusicRecord(msg, person, channel)
-	saveTags(msg, recordId)
-	tags := getTags(recordId)
-
-	log.Println("Record saved", recordId, musicRecord)
-	printMusicRecord(recordId, musicRecord, tags, isNew)
-}
-
-func saveMusicRecord(msg string, person types.Person, channel types.Channel) (int64, types.MusicRecord, bool) {
-	recordId, musicRecord, isNew, err := bot.SaveMusicRecord(msg, person, channel)
+	bot := textbot.New(playbot.New(extractor, repository))
+	result, cmd, err := bot.Execute(channel, person, msg)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	return recordId, musicRecord, isNew
-}
-
-func saveTags(msg string, recordId int64) {
-	re := regexp.MustCompile(`\s+`)
-	var tags []string
-	for _, word := range re.Split(msg, -1) {
-		if word[0] == '#' {
-			tags = append(tags, word[1:])
-		}
-	}
-
-	err := bot.SaveTags(recordId, tags)
-	if err != nil {
-		log.Fatal(err)
+	if result.ID != 0 {
+		// A new record was saved, or a command returned a music record.
+		printMusicRecord(
+			result.ID,
+			result.MusicRecord,
+			result.Tags,
+			result.IsNew,
+		)
+	} else if !cmd {
+		// No music record was saved and no command was executed. We need to exit with
+		// with an error so the perl code will try to parse the message.
+		log.Fatal("the message cannot be interpreted")
 	}
 }
 
-func getTags(recordId int64) []string {
-	tags, err := bot.GetTags(recordId)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	return tags
-}
-
-func printMusicRecord(recordId int64, record types.MusicRecord, tags []string, isNew bool) {
+func printMusicRecord(
+	recordId int64, record types.MusicRecord, tags []string, isNew bool,
+) {
 	if isNew {
 		fmt.Print("+", recordId, "\n")
 	} else {
