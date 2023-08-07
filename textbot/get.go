@@ -58,7 +58,7 @@ func (t textBot) getCmd(channel types.Channel, person types.Person, args []strin
 	searchResult, ok := <-ch
 	log.Print(searchResult)
 	if !ok {
-		return Result{}, nil
+		return Result{}, NoRecordFound{}
 	}
 
 	resultTags, err := t.playbot.GetTags(searchResult.Id())
