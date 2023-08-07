@@ -26,6 +26,7 @@ func printMusicRecord(result textbot.Result) string {
 		tags = append(tags, "#"+tag)
 	}
 	fmt.Fprintln(&b, strings.Join(tags, " "))
+	fmt.Fprintln(&b, result.Count)
 
 	return b.String()
 }

@@ -21,7 +21,7 @@ type Repository interface {
 	// results will be needed, cancel the context.
 	SearchMusicRecord(
 		ctx context.Context, channel types.Channel, words []string, tags []string,
-	) (chan SearchResult, error)
+	) (int64, chan SearchResult, error)
 }
 
 type SearchResult interface {

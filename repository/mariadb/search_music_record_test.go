@@ -165,7 +165,7 @@ func TestSearchMusicRecord_all(t *testing.T) {
 	// A query to search music records in channel1 matching:
 	// - words "class" and "bol"
 	// - tags "movie" and "french"
-	ch, err := r.SearchMusicRecord(
+	count, ch, err := r.SearchMusicRecord(
 		context.Background(),
 		types.Channel{Name: channel1},
 		[]string{"class", "bol"},
@@ -175,6 +175,7 @@ func TestSearchMusicRecord_all(t *testing.T) {
 
 	// assertions
 
+	assert.EqualValues(t, 2, count)
 	// get all results
 	var results []playbot.SearchResult
 	for r := range ch {
@@ -306,7 +307,7 @@ func TestSearchMusicRecord_noChannel(t *testing.T) {
 	// A query to search music records in channel1 matching:
 	// - words "class" and "bol"
 	// - tags tag1 and tag2
-	ch, err := r.SearchMusicRecord(
+	count, ch, err := r.SearchMusicRecord(
 		context.Background(),
 		types.Channel{},
 		[]string{"class", "bol"},
@@ -316,6 +317,7 @@ func TestSearchMusicRecord_noChannel(t *testing.T) {
 
 	// assertions
 
+	assert.EqualValues(t, 4, count)
 	// get all results
 	var results []playbot.SearchResult
 	for r := range ch {
@@ -441,7 +443,7 @@ func TestSearchMusicRecord_noWords(t *testing.T) {
 	// A query to search music records in channel1 matching:
 	// - words "class" and "bol"
 	// - tags "movie" and "french"
-	ch, err := r.SearchMusicRecord(
+	count, ch, err := r.SearchMusicRecord(
 		context.Background(),
 		types.Channel{Name: channel1},
 		[]string{},
@@ -451,6 +453,7 @@ func TestSearchMusicRecord_noWords(t *testing.T) {
 
 	// assertions
 
+	assert.EqualValues(t, 3, count)
 	// get all results
 	var results []playbot.SearchResult
 	for r := range ch {
@@ -575,7 +578,7 @@ func TestSearchMusicRecord_noTags(t *testing.T) {
 	// A query to search music records in channel1 matching:
 	// - words "class" and "bol"
 	// - tags "movie" and "french"
-	ch, err := r.SearchMusicRecord(
+	count, ch, err := r.SearchMusicRecord(
 		context.Background(),
 		types.Channel{Name: channel1},
 		[]string{"class", "bol"},
@@ -585,6 +588,7 @@ func TestSearchMusicRecord_noTags(t *testing.T) {
 
 	// assertions
 
+	assert.EqualValues(t, 3, count)
 	// get all results
 	var results []playbot.SearchResult
 	for r := range ch {
@@ -601,12 +605,132 @@ func TestSearchMusicRecord_noTags(t *testing.T) {
 	)
 }
 
+func TestSearchMusicRecord_noWords_noTags(t *testing.T) {
+	// setup
+
+	r := getTestRepository(t)
+	channel1 := gofakeit.DomainName()
+	channel2 := gofakeit.DomainName()
+
+	// A post in channel1 matching:
+	// - words "class" and "bol"
+	post1 := getMusicPost()
+	post1.Channel.Name = channel1
+	post1.MusicRecord.Name = "1 - La Classe Américaine"
+	post1.MusicRecord.Band.Name = "George Abitbol"
+	post1RecordId, isNew, err := r.SaveMusicPost(post1)
+	require.True(t, isNew)
+	require.Nil(t, err)
+	err = r.SaveTags(post1RecordId, []string{"movie", "french", "classic"})
+	require.Nil(t, err)
+
+	// A post in channel1 matching:
+	// - word "class" but not "bol"
+	post2 := getMusicPost()
+	post2.Channel.Name = channel1
+	post2.MusicRecord.Name = "2 - La Classe Américaine"
+	post2.MusicRecord.Band.Name = "George Brassens"
+	post2RecordId, isNew, err := r.SaveMusicPost(post2)
+	require.True(t, isNew)
+	require.Nil(t, err)
+	err = r.SaveTags(post2RecordId, []string{"movie", "french", "wrong"})
+	require.Nil(t, err)
+
+	// A post in channel1 matching:
+	// - words "class" and "bol"
+	post3 := getMusicPost()
+	post3.Channel.Name = channel1
+	post3.MusicRecord.Name = "3 - La Classe Américaine"
+	post3.MusicRecord.Band.Name = "George Abitbol"
+	post3RecordId, isNew, err := r.SaveMusicPost(post3)
+	require.True(t, isNew)
+	require.Nil(t, err)
+	err = r.SaveTags(post3RecordId, []string{"movie", "english", "classic"})
+	require.Nil(t, err)
+
+	// A post in channel1 matching:
+	// - words "class" and "bol"
+	post4 := getMusicPost()
+	post4.Channel.Name = channel1
+	post4.MusicRecord.Name = "4 - George Abitbol, a memorial"
+	post4.MusicRecord.Band.Name = "The American Class Fan Club"
+	post4RecordId, isNew, err := r.SaveMusicPost(post4)
+	require.True(t, isNew)
+	require.Nil(t, err)
+	err = r.SaveTags(post4RecordId, []string{"movie", "french", "documentary"})
+	require.Nil(t, err)
+
+	// A post in channel2 matching:
+	// - words "class" and "bol"
+	post5 := getMusicPost()
+	post5.Channel.Name = channel2
+	post5.MusicRecord.Name = "5 - La Classe Américaine"
+	post5.MusicRecord.Band.Name = "George Abitbol"
+	post5RecordId, isNew, err := r.SaveMusicPost(post5)
+	require.True(t, isNew)
+	require.Nil(t, err)
+	err = r.SaveTags(post5RecordId, []string{"movie", "french", "classic"})
+	require.Nil(t, err)
+
+	// A post in channel2 matching:
+	// - word "class" but not "bol"
+	post6 := getMusicPost()
+	post6.Channel.Name = channel2
+	post6.MusicRecord.Name = "6 - La Classe Américaine"
+	post6.MusicRecord.Band.Name = "George Brassens"
+	post6RecordId, isNew, err := r.SaveMusicPost(post6)
+	require.True(t, isNew)
+	require.Nil(t, err)
+	err = r.SaveTags(post6RecordId, []string{"movie", "french", "wrong"})
+	require.Nil(t, err)
+
+	// A post in channel2 matching:
+	// - words "class" and "bol"
+	post7 := getMusicPost()
+	post7.Channel.Name = channel2
+	post7.MusicRecord.Name = "7 - La Classe Américaine"
+	post7.MusicRecord.Band.Name = "George Abitbol"
+	post7RecordId, isNew, err := r.SaveMusicPost(post7)
+	require.True(t, isNew)
+	require.Nil(t, err)
+	err = r.SaveTags(post7RecordId, []string{"movie", "english", "classic"})
+	require.Nil(t, err)
+
+	// A post in channel2 matching:
+	// - words "class" and "bol"
+	post8 := getMusicPost()
+	post8.Channel.Name = channel2
+	post8.MusicRecord.Name = "8 - George Abitbol, a memorial"
+	post8.MusicRecord.Band.Name = "The American Class Fan Club"
+	post8RecordId, isNew, err := r.SaveMusicPost(post8)
+	require.True(t, isNew)
+	require.Nil(t, err)
+	err = r.SaveTags(post8RecordId, []string{"movie", "french", "documentary"})
+	require.Nil(t, err)
+
+	// test
+
+	// A query to search music records in any channel
+	ctx, cancel := context.WithCancel(context.Background())
+	_, _, err = r.SearchMusicRecord(
+		ctx,
+		types.Channel{},
+		[]string{},
+		[]string{},
+	)
+	cancel()
+
+	// assertions
+
+	assert.Nil(t, err)
+}
+
 func TestSearchMusicRecord_noResult(t *testing.T) {
 	// setup
 	r := getTestRepository(t)
 
 	// test
-	ch, err := r.SearchMusicRecord(
+	count, ch, err := r.SearchMusicRecord(
 		context.Background(),
 		types.Channel{Name: gofakeit.DomainName()},
 		[]string{},
@@ -616,6 +740,7 @@ func TestSearchMusicRecord_noResult(t *testing.T) {
 
 	// assertions
 
+	assert.EqualValues(t, 0, count)
 	// get all results
 	var results []playbot.SearchResult
 	for r := range ch {
@@ -645,7 +770,7 @@ func TestSearchMusicRecord_contextDone(t *testing.T) {
 
 	// test
 
-	ch, err := r.SearchMusicRecord(
+	count, ch, err := r.SearchMusicRecord(
 		ctx,
 		types.Channel{Name: channel},
 		[]string{},
@@ -655,6 +780,7 @@ func TestSearchMusicRecord_contextDone(t *testing.T) {
 
 	// assertions
 
+	assert.EqualValues(t, 10, count)
 	// get a result
 	_, ok := <-ch
 	assert.True(t, ok)

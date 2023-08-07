@@ -26,7 +26,7 @@ type server struct {
 
 func (s server) Execute(ctx context.Context, msg *pb.TextMessage) (*pb.Result, error) {
 	log.Printf(
-		"Parting message by %s in %s: %s",
+		"Parsing message by %s in %s: %s",
 		msg.PersonName,
 		msg.ChannelName,
 		msg.Msg,

@@ -12,11 +12,11 @@ import (
 // results will be needed, cancel the context.
 func (p Playbot) SearchMusicRecord(
 	ctx context.Context, channel types.Channel, words []string, tags []string,
-) (chan SearchResult, error) {
-	ch, err := p.repository.SearchMusicRecord(ctx, channel, words, tags)
+) (int64, chan SearchResult, error) {
+	count, ch, err := p.repository.SearchMusicRecord(ctx, channel, words, tags)
 	if err != nil {
-		return nil, fmt.Errorf("error while searching music record: %w", err)
+		return 0, nil, fmt.Errorf("error while searching music record: %w", err)
 	}
 
-	return ch, nil
+	return count, ch, nil
 }

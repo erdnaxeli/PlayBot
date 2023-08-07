@@ -2,6 +2,7 @@ package mariadb
 
 import (
 	"context"
+	"database/sql"
 	"log"
 	"strings"
 	"time"
@@ -12,12 +13,20 @@ import (
 
 func (r mariaDbRepository) SearchMusicRecord(
 	ctx context.Context, channel types.Channel, words []string, tags []string,
-) (chan playbot.SearchResult, error) {
-	query, dbArgs := makeSearchQuery(channel.Name, words, tags)
+) (int64, chan playbot.SearchResult, error) {
+	queryCount, dbArgs := makeSearchQuery(true, channel.Name, words, tags)
+	row := r.db.QueryRow(queryCount, dbArgs...)
+	var count int64
+	err := row.Scan(&count)
+	if err != nil {
+		return 0, nil, err
+	}
+
+	query, dbArgs := makeSearchQuery(false, channel.Name, words, tags)
 	ch := make(chan playbot.SearchResult)
 	rows, err := r.db.Query(query, dbArgs...)
 	if err != nil {
-		return nil, err
+		return 0, nil, err
 	}
 
 	go func() {
@@ -25,9 +34,11 @@ func (r mariaDbRepository) SearchMusicRecord(
 		defer close(ch)
 
 		for rows.Next() {
-			var id, duration int64
-			var sender, title, url, recordId, source string
-			err := rows.Scan(&id, &sender, &title, &url, &duration, &recordId, &source)
+			var id int64
+			var title, url, source string
+			var recordID, sender sql.NullString
+			var duration sql.NullInt64
+			err := rows.Scan(&id, &sender, &title, &url, &duration, &recordID, &source)
 			if err != nil {
 				log.Printf("Error while fetching rows after search: %s", err)
 				return
@@ -36,10 +47,10 @@ func (r mariaDbRepository) SearchMusicRecord(
 			searchResult := searchResult{
 				id,
 				types.MusicRecord{
-					Band:     types.Band{Name: sender},
-					Duration: time.Duration(duration * int64(time.Second)),
+					Band:     types.Band{Name: sender.String},
+					Duration: time.Duration(duration.Int64 * int64(time.Second)),
 					Name:     title,
-					RecordId: recordId,
+					RecordId: recordID.String,
 					Source:   source,
 					Url:      url,
 				},
@@ -53,20 +64,27 @@ func (r mariaDbRepository) SearchMusicRecord(
 		}
 	}()
 
-	return ch, nil
-
+	return count, ch, nil
 }
 
-func makeSearchQuery(channelName string, words []string, tags []string) (string, []any) {
-	query := `
-		select distinct
-			p.id,
-			p.sender,
-			p.title,
-			p.url,
-			p.duration,
-			p.external_id,
-			p.type
+func makeSearchQuery(count bool, channelName string, words []string, tags []string) (string, []any) {
+	var query string
+	if count {
+		query = "select count(distinct p.id)"
+	} else {
+		query = `
+			select distinct
+				p.id,
+				p.sender,
+				p.title,
+				p.url,
+				p.duration,
+				p.external_id,
+				p.type
+		`
+	}
+
+	query += `
 		from playbot p
 		join playbot_chan pc
 			on p.id = pc.content
@@ -92,7 +110,10 @@ func makeSearchQuery(channelName string, words []string, tags []string) (string,
 		dbArgs = append(dbArgs, tag)
 	}
 
-	query += " and " + strings.Join(filters, " and ") + " "
+	if len(filters) > 0 {
+		query += " and " + strings.Join(filters, " and ") + " "
+	}
+
 	query += " order by rand()"
 
 	return query, dbArgs

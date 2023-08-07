@@ -19,8 +19,12 @@ import (
 type Result struct {
 	ID int64
 	types.MusicRecord
-	Tags  []string
+	// The tags of the MusicRecord.
+	Tags []string
+	// True if the MusicRecord was newly inserted, false else.
 	IsNew bool
+	// If the MusicRecord come from a search, this is the count of results.
+	Count int64
 }
 
 type textBot struct {

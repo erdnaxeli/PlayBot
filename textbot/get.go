@@ -50,7 +50,7 @@ func (t textBot) getCmd(channel types.Channel, person types.Person, args []strin
 	}
 
 	ctx := context.Background()
-	ch, err := t.playbot.SearchMusicRecord(ctx, searchChannel, words, tags)
+	count, ch, err := t.playbot.SearchMusicRecord(ctx, searchChannel, words, tags)
 	if err != nil {
 		return Result{}, err
 	}
@@ -71,6 +71,7 @@ func (t textBot) getCmd(channel types.Channel, person types.Person, args []strin
 		MusicRecord: searchResult.MusicRecord(),
 		Tags:        resultTags,
 		IsNew:       false,
+		Count:       count,
 	}
 	return result, nil
 }
