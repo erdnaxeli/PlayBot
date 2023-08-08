@@ -52,7 +52,7 @@ func (p Playbot) SearchMusicRecord(
 
 func (p Playbot) cleanCanceledSearches() {
 	for channel, cursor := range p.searches {
-		if cursor.ctx.Err() != nil {
+		if cursor.search.Ctx.Err() != nil {
 			log.Printf("Discard canceled search for channel %s", channel)
 			p.discardSearch(channel)
 		}
@@ -62,8 +62,9 @@ func (p Playbot) cleanCanceledSearches() {
 func (p Playbot) getOrCreateSearchCursor(search Search) (searchCursor, error) {
 	cursor, ok := p.searches[search.Channel]
 	if ok &&
-		reflect.DeepEqual(cursor.words, search.Words) &&
-		reflect.DeepEqual(cursor.tags, search.Tags) {
+		cursor.search.GlobalSearch == search.GlobalSearch &&
+		reflect.DeepEqual(cursor.search.Words, search.Words) &&
+		reflect.DeepEqual(cursor.search.Tags, search.Tags) {
 
 		return cursor, nil
 	}
@@ -85,12 +86,10 @@ func (p Playbot) getOrCreateSearchCursor(search Search) (searchCursor, error) {
 	}
 
 	cursor = searchCursor{
-		ctx:    search.Ctx,
 		cancel: cancel,
 		count:  count,
 		ch:     ch,
-		tags:   search.Tags,
-		words:  search.Words,
+		search: search,
 	}
 	p.searches[search.Channel] = cursor
 	return cursor, nil
@@ -100,15 +99,15 @@ func (p Playbot) consumeSearchCursor(ctx context.Context, search Search, cursor 
 	select {
 	case <-ctx.Done():
 		return nil, fmt.Errorf("current search canceled: %w", ctx.Err())
-	case <-cursor.ctx.Done():
+	case <-cursor.search.Ctx.Done():
 		p.discardSearch(search.Channel)
-		return nil, SearchCanceledError{cursor.ctx.Err()}
+		return nil, SearchCanceledError{cursor.search.Ctx.Err()}
 	case result, ok := <-cursor.ch:
 		if !ok {
 			// no more results, we discard the search
 			p.discardSearch(search.Channel)
 
-			if err := cursor.ctx.Err(); err != nil {
+			if err := cursor.search.Ctx.Err(); err != nil {
 				return nil, SearchCanceledError{err}
 			}
 

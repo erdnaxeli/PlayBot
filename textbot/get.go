@@ -90,13 +90,13 @@ func (t textBot) getCmd(channel types.Channel, person types.Person, args []strin
 				)
 				if err != nil {
 					if errors.Is(err, playbot.SearchCanceledError{}) {
-						return Result{}, fmt.Errorf("the search keeps timeouting: %w", err)
+						return Result{Count: count}, fmt.Errorf("the search keeps timeouting: %w", err)
 					}
 
-					return Result{}, err
+					return Result{Count: count}, err
 				}
 			} else {
-				return Result{}, err
+				return Result{Count: count}, err
 			}
 		}
 
@@ -106,7 +106,7 @@ func (t textBot) getCmd(channel types.Channel, person types.Person, args []strin
 
 	resultTags, err := t.playbot.GetTags(recordID)
 	if err != nil {
-		return Result{}, nil
+		return Result{}, err
 	}
 
 	result := Result{
