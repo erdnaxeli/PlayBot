@@ -17,7 +17,7 @@ CREATE TABLE `playbot` (
     UNIQUE KEY `url` (`url`),
     KEY `chan` (`channel`),
     FULLTEXT KEY `sender` (`sender`, `title`)
-) ENGINE = InnoDB AUTO_INCREMENT = 28818 DEFAULT CHARSET = utf8 COLLATE = utf8_unicode_ci COMMENT = 'table du bot irc';
+) ENGINE = InnoDB AUTO_INCREMENT = 100 DEFAULT CHARSET = utf8 COLLATE = utf8_unicode_ci COMMENT = 'table du bot irc';
 CREATE TABLE `playbot_chan` (
     `id` int(10) NOT NULL AUTO_INCREMENT,
     `date` timestamp NULL DEFAULT current_timestamp(),
@@ -28,7 +28,7 @@ CREATE TABLE `playbot_chan` (
     KEY `content` (`content`),
     KEY `chan` (`chan`),
     CONSTRAINT `playbot_chan_ibfk_1` FOREIGN KEY (`content`) REFERENCES `playbot` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE = InnoDB AUTO_INCREMENT = 52344 DEFAULT CHARSET = latin1 COLLATE = latin1_swedish_ci;
+) ENGINE = InnoDB AUTO_INCREMENT = 100 DEFAULT CHARSET = latin1 COLLATE = latin1_swedish_ci;
 CREATE TABLE `playbot_codes` (
     `user` varchar(255) CHARACTER SET latin1 COLLATE latin1_swedish_ci NOT NULL,
     `code` varchar(25) CHARACTER SET latin1 COLLATE latin1_swedish_ci NOT NULL,
@@ -42,7 +42,7 @@ CREATE TABLE `playbot_config` (
     `name` varchar(255) NOT NULL,
     `sites` varchar(300) NOT NULL,
     PRIMARY KEY (`id`)
-) ENGINE = InnoDB AUTO_INCREMENT = 32 DEFAULT CHARSET = latin1 COLLATE = latin1_swedish_ci;
+) ENGINE = InnoDB AUTO_INCREMENT = 100 DEFAULT CHARSET = latin1 COLLATE = latin1_swedish_ci;
 CREATE TABLE `playbot_fav` (
     `user` varchar(255) NOT NULL,
     `id` int(6) NOT NULL,
@@ -59,14 +59,14 @@ CREATE TABLE `playbot_later` (
     `date` int(10) NOT NULL,
     PRIMARY KEY (`id`),
     KEY `content` (`content`)
-) ENGINE = InnoDB AUTO_INCREMENT = 5482 DEFAULT CHARSET = latin1 COLLATE = latin1_swedish_ci;
+) ENGINE = InnoDB AUTO_INCREMENT = 100 DEFAULT CHARSET = latin1 COLLATE = latin1_swedish_ci;
 CREATE TABLE `playbot_playlist_content_association` (
     `id` int(11) NOT NULL AUTO_INCREMENT,
     `playlist_id` int(11) DEFAULT NULL,
     `content_id` int(11) DEFAULT NULL,
     PRIMARY KEY (`id`),
     UNIQUE KEY `playlist_id` (`playlist_id`, `content_id`)
-) ENGINE = InnoDB AUTO_INCREMENT = 444 DEFAULT CHARSET = latin1 COLLATE = latin1_swedish_ci;
+) ENGINE = InnoDB AUTO_INCREMENT = 100 DEFAULT CHARSET = latin1 COLLATE = latin1_swedish_ci;
 CREATE TABLE `playbot_tags` (
     `id` int(11) NOT NULL,
     `tag` varchar(50) CHARACTER SET latin1 COLLATE latin1_swedish_ci NOT NULL,
