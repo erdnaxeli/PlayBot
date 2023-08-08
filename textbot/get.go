@@ -126,7 +126,6 @@ func (t textBot) getById(args []string) (int64, types.MusicRecord, error) {
 
 	recordID, err := strconv.ParseInt(args[0], 10, 64)
 	if err != nil {
-		log.Printf("%T", err)
 		if _, ok := err.(*strconv.NumError); ok {
 			// not a number
 			return 0, types.MusicRecord{}, nil

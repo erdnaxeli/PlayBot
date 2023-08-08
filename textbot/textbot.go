@@ -9,6 +9,8 @@
 package textbot
 
 import (
+	"errors"
+	"log"
 	"regexp"
 
 	"github.com/erdnaxeli/PlayBot/playbot"
@@ -28,12 +30,14 @@ type Result struct {
 }
 
 type textBot struct {
-	playbot playbot.Playbot
+	playbot      playbot.Playbot
+	lastCommands map[types.Channel][]string
 }
 
 func New(playbot playbot.Playbot) textBot {
 	return textBot{
-		playbot: playbot,
+		playbot:      playbot,
+		lastCommands: make(map[types.Channel][]string),
 	}
 }
 
@@ -53,19 +57,49 @@ func (t textBot) Execute(
 	person := types.Person{Name: personName}
 
 	args := parseArgs(msg)
-	cmd, args := args[0], args[1:]
-	switch cmd {
-	case "!fav":
-		err := t.favCmd(channel, person, args)
-		return Result{}, true, err
-	case "!get":
-		result, err := t.getCmd(channel, person, args)
-		return result, true, err
-	default:
-		result, err := t.saveMusicPost(channel, person, msg)
-		return result, false, err
+	cmd, cmdArgs := args[0], args[1:]
+	if cmd == "!" {
+		lastCmd, ok := t.lastCommands[channel]
+		if ok {
+			log.Printf("Repeat last command: %s", lastCmd)
+			cmd, cmdArgs = lastCmd[0], lastCmd[1:]
+			args = lastCmd
+		}
 	}
 
+	var result Result
+	ok := true
+	var err error
+
+	notImplementedError := errors.New("not implemented")
+
+	switch cmd {
+	case "!broken":
+		err = notImplementedError
+	case "!conf":
+		err = notImplementedError
+	case "!fav":
+		err = t.favCmd(channel, person, cmdArgs)
+	case "!later":
+		err = notImplementedError
+	case "!get":
+		result, err = t.getCmd(channel, person, cmdArgs)
+	case "!help":
+		err = notImplementedError
+	case "!stats":
+		err = notImplementedError
+	case "!tag":
+		err = notImplementedError
+	default:
+		result, err = t.saveMusicPost(channel, person, msg)
+		ok = false
+	}
+
+	if ok {
+		t.lastCommands[channel] = args
+	}
+
+	return result, ok, err
 }
 
 func parseArgs(msg string) []string {

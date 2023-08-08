@@ -27,6 +27,18 @@ func TestParseArgs(t *testing.T) {
 			msg:  "test",
 			args: []string{"test"},
 		},
+		{
+			msg:  "!",
+			args: []string{"!"},
+		},
+		{
+			msg:  "!  ",
+			args: []string{"!"},
+		},
+		{
+			msg:  "  ! ",
+			args: []string{"!"},
+		},
 	}
 	for _, test := range tests {
 		t.Run(
