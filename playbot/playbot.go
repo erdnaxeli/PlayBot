@@ -38,14 +38,10 @@ type Playbot struct {
 }
 
 type searchCursor struct {
-	// the context of the search.
-	ctx context.Context
-	// the method to cancel the context given to the repository
 	cancel func()
 	count  int64
 	ch     chan SearchResult
-	tags   []string
-	words  []string
+	search Search
 }
 
 func New(extractor extractors.MultipleSourcesExtractor, repository Repository) Playbot {
