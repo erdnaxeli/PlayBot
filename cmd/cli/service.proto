@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+package rpc;
+option go_package = "github.com/erdnaxeli/playbot/cmd/cli/rpc";
+
+service PlaybotCli {
+    rpc Execute(TextMessage) returns (Result);
+}
+
+message TextMessage {
+    string channelName = 1;
+    string personName = 2;
+    string msg = 3;
+}
+
+message Result {
+    string msg = 1;
+}

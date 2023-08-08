@@ -1,6 +1,8 @@
 package playbot
 
 import (
+	"context"
+
 	"github.com/erdnaxeli/PlayBot/extractors"
 	"github.com/erdnaxeli/PlayBot/types"
 )
@@ -14,6 +16,10 @@ type Repository interface {
 	SaveMusicPost(types.MusicPost) (int64, bool, error)
 	// Save the given tags for the music record pointed by the given id.
 	SaveTags(musicRecordId int64, tags []string) error
+	// Search for a music record. It returns a channel to stream SearchResult objects.
+	SearchMusicRecord(
+		ctx context.Context, channel types.Channel, words []string, tags []string,
+	) (int64, chan SearchResult, error)
 }
 
 type SearchResult interface {
@@ -24,11 +30,26 @@ type SearchResult interface {
 type Playbot struct {
 	extractor  extractors.MultipleSourcesExtractor
 	repository Repository
+
+	// Contains the ongoing searches.
+	searches map[types.Channel]searchCursor
 }
 
-func New(extractor extractors.MultipleSourcesExtractor, repository Repository) *Playbot {
-	return &Playbot{
+type searchCursor struct {
+	// the context of the search.
+	ctx context.Context
+	// the method to cancel the context given to the repository
+	cancel func()
+	count  int64
+	ch     chan SearchResult
+	tags   []string
+	words  []string
+}
+
+func New(extractor extractors.MultipleSourcesExtractor, repository Repository) Playbot {
+	return Playbot{
 		extractor:  extractor,
 		repository: repository,
+		searches:   make(map[types.Channel]searchCursor),
 	}
 }

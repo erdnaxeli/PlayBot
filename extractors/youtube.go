@@ -42,9 +42,14 @@ func (e *YoutubeExtractor) Extract(recordId string) (types.MusicRecord, error) {
 	}
 
 	video := response.Items[0]
+	duration, err := iso8601.ParseDuration(video.ContentDetails.Duration)
+	if err != nil {
+		return types.MusicRecord{}, err
+	}
+
 	return types.MusicRecord{
 		Band:     types.Band{Name: video.Snippet.ChannelTitle},
-		Duration: iso8601.ParseDuration(video.ContentDetails.Duration),
+		Duration: duration,
 		Name:     video.Snippet.Title,
 		RecordId: recordId,
 		Source:   "youtube",

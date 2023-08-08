@@ -12,10 +12,15 @@ jobs:
         with:
           go-version: '1.20'
           cache: false
+      - name: Install Protoc
+        uses: arduino/setup-protoc@v2
+      - name: generate RPC code
+        run: make generate
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v3
         with:
           version: latest
+          skip-pkg-cache: true
   tests:
     runs-on: ubuntu-latest
     steps:
@@ -24,6 +29,10 @@ jobs:
       with:
         go-version-file: 'go.mod'
     - name: Start MariaDB
-      run: docker compose up --detach && sleep 10
+      run: docker compose up --detach && sleep 2
+    - name: Install Protoc
+      uses: arduino/setup-protoc@v2
+    - name: generate RPC code
+      run: make generate
     - name: Run tests
       run: go test ./...
