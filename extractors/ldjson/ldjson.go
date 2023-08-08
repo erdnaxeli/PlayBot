@@ -45,14 +45,20 @@ func (e ldJsonExtractor) Extract(url string) (types.MusicRecord, error) {
 	if recordUrl == "" {
 		recordUrl = record.MainEntityOfPage
 	}
+
 	band := record.InAlbum.ByArtist.Name
 	if band == "" {
 		band = record.ByArtist.Name
 	}
 
+	duration, err := iso8601.ParseDuration(record.Duration)
+	if err != nil {
+		return types.MusicRecord{}, err
+	}
+
 	return types.MusicRecord{
 		Band:     types.Band{Name: band},
-		Duration: iso8601.ParseDuration(record.Duration),
+		Duration: duration,
 		Name:     record.Name,
 		RecordId: record.Id,
 		Url:      recordUrl,
