@@ -3,7 +3,7 @@ export CGO_ENABLED = 0
 generate:
 	go generate ./...
 
-build-cli: generate
+build-cli:
 	go build -ldflags="-s -w" ./cmd/cli
 
 style:
