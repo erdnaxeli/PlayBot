@@ -8,6 +8,8 @@ import (
 )
 
 type Repository interface {
+	// Get a music record by id.
+	GetMusicRecord(musicRecordId int64) (types.MusicRecord, error)
 	// Return a slice of tags for the given music record.
 	GetTags(musicRecordId int64) ([]string, error)
 	// Save a music post and return the music record id along to a bool which is
