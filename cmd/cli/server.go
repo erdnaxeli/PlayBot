@@ -34,7 +34,7 @@ func (s server) Execute(ctx context.Context, msg *pb.TextMessage) (*pb.Result, e
 
 	result, cmd, err := s.textBot.Execute(msg.ChannelName, msg.PersonName, msg.Msg)
 	if err != nil {
-		if errors.Is(err, textbot.NoRecordFound{}) {
+		if errors.Is(err, playbot.NoRecordFoundError{}) {
 			return &pb.Result{Msg: "Je n'ai rien dans ce registre."}, nil
 		}
 

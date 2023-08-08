@@ -39,6 +39,5 @@ func main() {
 		log.Fatal(err)
 	}
 
-	log.Print("Result received")
 	fmt.Print(result.Msg)
 }

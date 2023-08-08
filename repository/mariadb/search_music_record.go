@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"log"
+	"runtime"
 	"strings"
 	"time"
 
@@ -14,17 +15,26 @@ import (
 func (r mariaDbRepository) SearchMusicRecord(
 	ctx context.Context, channel types.Channel, words []string, tags []string,
 ) (int64, chan playbot.SearchResult, error) {
+	tx, err := r.db.Begin()
+	if err != nil {
+		return 0, nil, err
+	}
+
+	// We can't use defer because SearchMusicRecord will end but the goroutine still
+	// needs the transaction to read rows from it.
+	runtime.SetFinalizer(tx, func(tx *sql.Tx) { _ = tx.Rollback() })
+
 	queryCount, dbArgs := makeSearchQuery(true, channel.Name, words, tags)
-	row := r.db.QueryRow(queryCount, dbArgs...)
+	row := tx.QueryRow(queryCount, dbArgs...)
 	var count int64
-	err := row.Scan(&count)
+	err = row.Scan(&count)
 	if err != nil {
 		return 0, nil, err
 	}
 
 	query, dbArgs := makeSearchQuery(false, channel.Name, words, tags)
 	ch := make(chan playbot.SearchResult)
-	rows, err := r.db.Query(query, dbArgs...)
+	rows, err := tx.Query(query, dbArgs...)
 	if err != nil {
 		return 0, nil, err
 	}
@@ -58,10 +68,16 @@ func (r mariaDbRepository) SearchMusicRecord(
 
 			select {
 			case <-ctx.Done():
+				log.Print("search canceled")
 				return
 			case ch <- searchResult:
 			}
 		}
+
+		// We need the transaction to stay alive until here to be able to read results
+		// from it.
+		runtime.KeepAlive(tx)
+		log.Print("search done")
 	}()
 
 	return count, ch, nil

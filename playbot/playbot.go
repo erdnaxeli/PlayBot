@@ -17,8 +17,6 @@ type Repository interface {
 	// Save the given tags for the music record pointed by the given id.
 	SaveTags(musicRecordId int64, tags []string) error
 	// Search for a music record. It returns a channel to stream SearchResult objects.
-	// Closing the channel will produce a panic. If you want to notify than no more
-	// results will be needed, cancel the context.
 	SearchMusicRecord(
 		ctx context.Context, channel types.Channel, words []string, tags []string,
 	) (int64, chan SearchResult, error)
@@ -32,11 +30,26 @@ type SearchResult interface {
 type Playbot struct {
 	extractor  extractors.MultipleSourcesExtractor
 	repository Repository
+
+	// Contains the ongoing searches.
+	searches map[types.Channel]searchCursor
+}
+
+type searchCursor struct {
+	// the context of the search.
+	ctx context.Context
+	// the method to cancel the context given to the repository
+	cancel func()
+	count  int64
+	ch     chan SearchResult
+	tags   []string
+	words  []string
 }
 
 func New(extractor extractors.MultipleSourcesExtractor, repository Repository) Playbot {
 	return Playbot{
 		extractor:  extractor,
 		repository: repository,
+		searches:   make(map[types.Channel]searchCursor),
 	}
 }

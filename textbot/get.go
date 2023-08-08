@@ -2,9 +2,13 @@ package textbot
 
 import (
 	"context"
+	"errors"
+	"fmt"
 	"log"
 	"strings"
+	"time"
 
+	"github.com/erdnaxeli/PlayBot/playbot"
 	"github.com/erdnaxeli/PlayBot/types"
 	"github.com/spf13/pflag"
 )
@@ -34,11 +38,6 @@ func (t textBot) getCmd(channel types.Channel, person types.Person, args []strin
 		return Result{}, err
 	}
 
-	var searchChannel types.Channel
-	if !all {
-		searchChannel = channel
-	}
-
 	var words []string
 	var tags []string
 	for _, arg := range flagSet.Args() {
@@ -50,15 +49,45 @@ func (t textBot) getCmd(channel types.Channel, person types.Person, args []strin
 	}
 
 	ctx := context.Background()
-	count, ch, err := t.playbot.SearchMusicRecord(ctx, searchChannel, words, tags)
-	if err != nil {
-		return Result{}, err
-	}
+	//nolint:govet
+	searchContext, _ := context.WithTimeout(ctx, 6*time.Hour)
+	resultContext, cancel := context.WithTimeout(ctx, 30*time.Second)
+	defer cancel()
 
-	searchResult, ok := <-ch
-	log.Print(searchResult)
-	if !ok {
-		return Result{}, NoRecordFound{}
+	count, searchResult, err := t.playbot.SearchMusicRecord(
+		resultContext,
+		playbot.Search{
+			Ctx:          searchContext,
+			Channel:      channel,
+			GlobalSearch: all,
+			Words:        words,
+			Tags:         tags,
+		},
+	)
+	if err != nil {
+		if errors.Is(err, playbot.SearchCanceledError{}) {
+			// we retry once
+			log.Print("The search was canceled, we retry once")
+			count, searchResult, err = t.playbot.SearchMusicRecord(
+				resultContext,
+				playbot.Search{
+					Ctx:          searchContext,
+					Channel:      channel,
+					GlobalSearch: all,
+					Words:        words,
+					Tags:         tags,
+				},
+			)
+			if err != nil {
+				if errors.Is(err, playbot.SearchCanceledError{}) {
+					return Result{}, fmt.Errorf("the search keeps timeouting: %w", err)
+				}
+
+				return Result{}, err
+			}
+		} else {
+			return Result{}, err
+		}
 	}
 
 	resultTags, err := t.playbot.GetTags(searchResult.Id())
