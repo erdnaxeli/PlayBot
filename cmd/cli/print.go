@@ -25,7 +25,15 @@ func printMusicRecord(result textbot.Result) string {
 	for _, tag := range result.Tags {
 		tags = append(tags, "#"+tag)
 	}
-	fmt.Fprintln(&b, strings.Join(tags, " "))
+	fmt.Fprint(&b, strings.Join(tags, " "))
+
+	if result.Count == 1 {
+		fmt.Fprintln(&b, " [1 résultat]")
+	} else if result.Count > 1 {
+		fmt.Fprintf(&b, " [%d résultats]\n", result.Count)
+	} else {
+		fmt.Fprintln(&b)
+	}
 	fmt.Fprintln(&b, result.Count)
 
 	return b.String()
