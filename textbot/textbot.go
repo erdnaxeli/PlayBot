@@ -12,6 +12,7 @@ import (
 	"errors"
 	"log"
 	"regexp"
+	"sync"
 
 	"github.com/erdnaxeli/PlayBot/playbot"
 	"github.com/erdnaxeli/PlayBot/types"
@@ -30,12 +31,13 @@ type Result struct {
 }
 
 type textBot struct {
-	playbot      playbot.Playbot
-	lastCommands map[types.Channel][]string
+	playbot           *playbot.Playbot
+	lastCommands      map[types.Channel][]string
+	lastCommandsMutex sync.RWMutex
 }
 
-func New(playbot playbot.Playbot) textBot {
-	return textBot{
+func New(playbot *playbot.Playbot) *textBot {
+	return &textBot{
 		playbot:      playbot,
 		lastCommands: make(map[types.Channel][]string),
 	}
@@ -50,7 +52,7 @@ func New(playbot playbot.Playbot) textBot {
 // value contains the music record saved, if any.
 // If the Result object is equal to its zero value and the bool value is false, it means
 // nothing has been done.
-func (t textBot) Execute(
+func (t *textBot) Execute(
 	channelName string, personName string, msg string,
 ) (Result, bool, error) {
 	channel := types.Channel{Name: channelName}
@@ -59,7 +61,7 @@ func (t textBot) Execute(
 	args := parseArgs(msg)
 	cmd, cmdArgs := args[0], args[1:]
 	if cmd == "!" {
-		lastCmd, ok := t.lastCommands[channel]
+		lastCmd, ok := t.getLastCommand(channel)
 		if ok {
 			log.Printf("Repeat last command: %s", lastCmd)
 			cmd, cmdArgs = lastCmd[0], lastCmd[1:]
@@ -96,10 +98,25 @@ func (t textBot) Execute(
 	}
 
 	if ok {
-		t.lastCommands[channel] = args
+		t.saveLastCommand(channel, args)
 	}
 
 	return result, ok, err
+}
+
+func (t *textBot) getLastCommand(channel types.Channel) ([]string, bool) {
+	t.lastCommandsMutex.RLock()
+	defer t.lastCommandsMutex.RUnlock()
+
+	v, ok := t.lastCommands[channel]
+	return v, ok
+}
+
+func (t *textBot) saveLastCommand(channel types.Channel, cmd []string) {
+	t.lastCommandsMutex.Lock()
+	defer t.lastCommandsMutex.Unlock()
+
+	t.lastCommands[channel] = cmd
 }
 
 func parseArgs(msg string) []string {

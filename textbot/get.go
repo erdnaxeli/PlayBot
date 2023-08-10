@@ -14,7 +14,7 @@ import (
 	"github.com/spf13/pflag"
 )
 
-func (t textBot) getCmd(channel types.Channel, person types.Person, args []string) (Result, error) {
+func (t *textBot) getCmd(channel types.Channel, person types.Person, args []string) (Result, error) {
 	var all bool
 	var force bool
 
@@ -119,7 +119,7 @@ func (t textBot) getCmd(channel types.Channel, person types.Person, args []strin
 	return result, nil
 }
 
-func (t textBot) getById(args []string) (int64, types.MusicRecord, error) {
+func (t *textBot) getById(args []string) (int64, types.MusicRecord, error) {
 	if len(args) == 0 {
 		return 0, types.MusicRecord{}, nil
 	}
