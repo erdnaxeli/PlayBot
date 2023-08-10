@@ -40,7 +40,6 @@ func (p *Playbot) SearchMusicRecord(
 	ctx context.Context,
 	search Search,
 ) (count int64, result SearchResult, err error) {
-	p.cleanCanceledSearches()
 	cursor, err := p.getOrCreateSearchCursor(search)
 	if err != nil {
 		return 0, nil, err
@@ -48,22 +47,6 @@ func (p *Playbot) SearchMusicRecord(
 
 	result, err = p.consumeSearchCursor(ctx, search, cursor)
 	return cursor.count, result, err
-}
-
-func (p *Playbot) cleanCanceledSearches() {
-	p.searchesMutex.RLock()
-	for channel, cursor := range p.searches {
-		p.searchesMutex.RUnlock()
-
-		if cursor.search.Ctx.Err() != nil {
-			log.Printf("Discard canceled search for channel %s", channel)
-			p.discardSearch(channel)
-		}
-
-		p.searchesMutex.RLock()
-	}
-
-	p.searchesMutex.RUnlock()
 }
 
 func (p *Playbot) getOrCreateSearchCursor(search Search) (searchCursor, error) {
@@ -151,6 +134,10 @@ func (p *Playbot) setSearchCursor(channel types.Channel, cursor searchCursor) {
 	defer p.searchesMutex.Unlock()
 
 	p.searches[channel] = cursor
+	context.AfterFunc(cursor.search.Ctx, func() {
+		log.Printf("Discard canceled search for channel %s", channel)
+		p.deleteSearchCursor(channel)
+	})
 }
 
 func (p *Playbot) deleteSearchCursor(channel types.Channel) {
