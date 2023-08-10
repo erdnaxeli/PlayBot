@@ -36,7 +36,7 @@ type Search struct {
 // one is started.
 // resultCtx is the context used to return the result. If the context is canceled no
 // result is returned, but the search is kept and can be consumed again.
-func (p Playbot) SearchMusicRecord(
+func (p *Playbot) SearchMusicRecord(
 	ctx context.Context,
 	search Search,
 ) (count int64, result SearchResult, err error) {
@@ -50,17 +50,25 @@ func (p Playbot) SearchMusicRecord(
 	return cursor.count, result, err
 }
 
-func (p Playbot) cleanCanceledSearches() {
+func (p *Playbot) cleanCanceledSearches() {
+	p.searchesMutex.RLock()
 	for channel, cursor := range p.searches {
+		p.searchesMutex.RUnlock()
+
 		if cursor.search.Ctx.Err() != nil {
 			log.Printf("Discard canceled search for channel %s", channel)
 			p.discardSearch(channel)
 		}
+
+		p.searchesMutex.RLock()
 	}
+
+	p.searchesMutex.RUnlock()
 }
 
-func (p Playbot) getOrCreateSearchCursor(search Search) (searchCursor, error) {
-	cursor, ok := p.searches[search.Channel]
+func (p *Playbot) getOrCreateSearchCursor(search Search) (searchCursor, error) {
+	cursor, ok := p.getSearchCursor(search.Channel)
+
 	if ok &&
 		cursor.search.GlobalSearch == search.GlobalSearch &&
 		reflect.DeepEqual(cursor.search.Words, search.Words) &&
@@ -91,11 +99,12 @@ func (p Playbot) getOrCreateSearchCursor(search Search) (searchCursor, error) {
 		ch:     ch,
 		search: search,
 	}
-	p.searches[search.Channel] = cursor
+
+	p.setSearchCursor(search.Channel, cursor)
 	return cursor, nil
 }
 
-func (p Playbot) consumeSearchCursor(ctx context.Context, search Search, cursor searchCursor) (SearchResult, error) {
+func (p *Playbot) consumeSearchCursor(ctx context.Context, search Search, cursor searchCursor) (SearchResult, error) {
 	select {
 	case <-ctx.Done():
 		return nil, fmt.Errorf("current search canceled: %w", ctx.Err())
@@ -119,12 +128,34 @@ func (p Playbot) consumeSearchCursor(ctx context.Context, search Search, cursor 
 	}
 }
 
-func (p Playbot) discardSearch(channel types.Channel) {
-	cursor, ok := p.searches[channel]
+func (p *Playbot) discardSearch(channel types.Channel) {
+	cursor, ok := p.getSearchCursor(channel)
 	if !ok {
 		return
 	}
 
 	cursor.cancel()
+	p.deleteSearchCursor(channel)
+}
+
+func (p *Playbot) getSearchCursor(channel types.Channel) (searchCursor, bool) {
+	p.searchesMutex.RLock()
+	defer p.searchesMutex.RUnlock()
+
+	cursor, ok := p.searches[channel]
+	return cursor, ok
+}
+
+func (p *Playbot) setSearchCursor(channel types.Channel, cursor searchCursor) {
+	p.searchesMutex.Lock()
+	defer p.searchesMutex.Unlock()
+
+	p.searches[channel] = cursor
+}
+
+func (p *Playbot) deleteSearchCursor(channel types.Channel) {
+	p.searchesMutex.Lock()
+	defer p.searchesMutex.Unlock()
+
 	delete(p.searches, channel)
 }

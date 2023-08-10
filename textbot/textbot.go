@@ -31,12 +31,12 @@ type Result struct {
 }
 
 type textBot struct {
-	playbot           playbot.Playbot
+	playbot           *playbot.Playbot
 	lastCommands      map[types.Channel][]string
 	lastCommandsMutex sync.RWMutex
 }
 
-func New(playbot playbot.Playbot) *textBot {
+func New(playbot *playbot.Playbot) *textBot {
 	return &textBot{
 		playbot:      playbot,
 		lastCommands: make(map[types.Channel][]string),

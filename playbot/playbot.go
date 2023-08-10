@@ -2,6 +2,7 @@ package playbot
 
 import (
 	"context"
+	"sync"
 
 	"github.com/erdnaxeli/PlayBot/extractors"
 	"github.com/erdnaxeli/PlayBot/types"
@@ -34,7 +35,8 @@ type Playbot struct {
 	repository Repository
 
 	// Contains the ongoing searches.
-	searches map[types.Channel]searchCursor
+	searches      map[types.Channel]searchCursor
+	searchesMutex sync.RWMutex
 }
 
 type searchCursor struct {
@@ -44,8 +46,8 @@ type searchCursor struct {
 	search Search
 }
 
-func New(extractor extractors.MultipleSourcesExtractor, repository Repository) Playbot {
-	return Playbot{
+func New(extractor extractors.MultipleSourcesExtractor, repository Repository) *Playbot {
+	return &Playbot{
 		extractor:  extractor,
 		repository: repository,
 		searches:   make(map[types.Channel]searchCursor),
