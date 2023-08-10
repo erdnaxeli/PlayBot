@@ -7,7 +7,7 @@ import (
 	"github.com/erdnaxeli/PlayBot/types"
 )
 
-func (t textBot) saveMusicPost(
+func (t *textBot) saveMusicPost(
 	channel types.Channel, person types.Person, msg string,
 ) (Result, error) {
 	recordID, musicRecord, isNew, err := t.playbot.SaveMusicRecord(msg, person, channel)
@@ -35,7 +35,7 @@ func (t textBot) saveMusicPost(
 	return result, nil
 }
 
-func (t textBot) saveTags(msg string, recordId int64) error {
+func (t *textBot) saveTags(msg string, recordId int64) error {
 	tags := extractTags(msg)
 	err := t.playbot.SaveTags(recordId, tags)
 	return err
