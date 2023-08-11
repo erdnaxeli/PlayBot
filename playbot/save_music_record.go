@@ -11,7 +11,7 @@ import (
 //
 // Return the id, the music record, an bool indicating if the record is a new one,
 // and an error.
-func (p *Playbot) SaveMusicRecord(
+func (p *Playbot) ParseAndSaveMusicRecord(
 	msg string, person types.Person, channel types.Channel,
 ) (int64, types.MusicRecord, bool, error) {
 	_, musicRecord, err := p.extractor.Extract(msg)

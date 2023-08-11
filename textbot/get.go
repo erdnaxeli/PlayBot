@@ -90,7 +90,7 @@ func (t *textBot) getCmd(channel types.Channel, person types.Person, args []stri
 				)
 				if err != nil {
 					if errors.Is(err, playbot.SearchCanceledError{}) {
-						return Result{Count: count}, fmt.Errorf("the search keeps timeouting: %w", err)
+						return Result{}, fmt.Errorf("the search keeps timeouting: %w", err)
 					}
 
 					return Result{Count: count}, err
@@ -105,6 +105,11 @@ func (t *textBot) getCmd(channel types.Channel, person types.Person, args []stri
 	}
 
 	resultTags, err := t.playbot.GetTags(recordID)
+	if err != nil {
+		return Result{}, err
+	}
+
+	err = t.playbot.SaveMusicPost(recordID, channel, types.Person{Name: "PlayBot"})
 	if err != nil {
 		return Result{}, err
 	}
@@ -136,5 +141,6 @@ func (t *textBot) getById(args []string) (int64, types.MusicRecord, error) {
 	}
 
 	record, err := t.playbot.GetMusicRecord(int64(recordID))
+
 	return recordID, record, err
 }
