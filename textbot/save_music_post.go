@@ -36,15 +36,20 @@ func (t *textBot) saveMusicPost(
 }
 
 func (t *textBot) saveTags(msg string, recordId int64) error {
-	tags := extractTags(msg)
+	tags := extractTagsFromMsg(msg)
 	err := t.playbot.SaveTags(recordId, tags)
 	return err
 }
 
-func extractTags(msg string) []string {
+func extractTagsFromMsg(msg string) []string {
 	re := regexp.MustCompile(`\s+`)
+	args := re.Split(msg, -1)
+	return extractTags(args)
+}
+
+func extractTags(args []string) []string {
 	var tags []string
-	for _, word := range re.Split(msg, -1) {
+	for _, word := range args {
 		if len(word) > 0 && word[0] == '#' {
 			tags = append(tags, word[1:])
 		}

@@ -1,12 +1,11 @@
 package playbot
 
-import "fmt"
+import (
+	"errors"
+	"fmt"
+)
 
-type NoRecordFoundError struct{}
-
-func (NoRecordFoundError) Error() string {
-	return "no matching record found"
-}
+var NoRecordFoundError = errors.New("no matching record found")
 
 type SearchCanceledError struct {
 	err error
@@ -24,3 +23,5 @@ func (e SearchCanceledError) Is(target error) bool {
 	_, ok := target.(SearchCanceledError)
 	return ok
 }
+
+var InvalidOffsetError = errors.New("invalid offset")
