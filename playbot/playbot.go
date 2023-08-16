@@ -9,7 +9,11 @@ import (
 )
 
 type Repository interface {
-	// Get a music record by id.
+	// Return the ID of the last music record in the given channel.
+	// If an offset is given, that many music record are skipped before selecting the
+	// to return the id from.
+	GetLastID(channel types.Channel, offset int) (int64, error)
+	// Get a music record by ID.
 	GetMusicRecord(musicRecordId int64) (types.MusicRecord, error)
 	// Return a slice of tags for the given music record.
 	GetTags(musicRecordId int64) ([]string, error)
@@ -17,7 +21,7 @@ type Repository interface {
 	// true if the post is a new one, false is the post already existed. In the
 	// latter case, the post is updated.
 	SaveMusicPost(types.MusicPost) (int64, bool, error)
-	// Save the given tags for the music record pointed by the given id.
+	// Save the given tags for the music record pointed by the given ID.
 	SaveTags(musicRecordId int64, tags []string) error
 	// Search for a music record. It returns a channel to stream SearchResult objects.
 	SearchMusicRecord(

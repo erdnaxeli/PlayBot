@@ -91,7 +91,7 @@ func (t *textBot) Execute(
 	case "!stats":
 		err = notImplementedError
 	case "!tag":
-		err = notImplementedError
+		err = t.saveTagsCmd(channel, person, cmdArgs)
 	default:
 		result, err = t.saveMusicPost(channel, person, msg)
 		ok = false
