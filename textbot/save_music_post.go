@@ -10,7 +10,9 @@ import (
 func (t *textBot) saveMusicPost(
 	channel types.Channel, person types.Person, msg string,
 ) (Result, error) {
-	recordID, musicRecord, isNew, err := t.playbot.SaveMusicRecord(msg, person, channel)
+	recordID, musicRecord, isNew, err := t.playbot.ParseAndSaveMusicRecord(
+		msg, person, channel,
+	)
 	if err != nil {
 		return Result{}, err
 	}
