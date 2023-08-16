@@ -103,7 +103,7 @@ func (p *Playbot) consumeSearchCursor(ctx context.Context, search Search, cursor
 				return nil, SearchCanceledError{err}
 			}
 
-			err := NoRecordFoundError{}
+			err := NoRecordFoundError
 			return nil, err
 		}
 

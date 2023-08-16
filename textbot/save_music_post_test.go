@@ -23,7 +23,7 @@ func TestExtractTags(t *testing.T) {
 		t.Run(
 			test.msg,
 			func(t *testing.T) {
-				tags := extractTags(test.msg)
+				tags := extractTagsFromMsg(test.msg)
 
 				assert.Equal(t, test.tags, tags)
 			},
