@@ -5,7 +5,9 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"math/rand"
 	"net/http"
+	"strings"
 
 	pb "github.com/erdnaxeli/PlayBot/cmd/cli/rpc"
 	"github.com/erdnaxeli/PlayBot/config"
@@ -15,6 +17,13 @@ import (
 	"github.com/erdnaxeli/PlayBot/repository/mariadb"
 	"github.com/erdnaxeli/PlayBot/textbot"
 )
+
+var insults = [...]string{
+	"Ahahahah ! 23 à 0 !",
+	"C'est la piquette, Jack !",
+	"Tu sais pas jouer, Jack !",
+	"T'es mauvais, Jack !",
+}
 
 type textBot interface {
 	Execute(string, string, string) (textbot.Result, bool, error)
@@ -44,6 +53,8 @@ func (s server) Execute(ctx context.Context, msg *pb.TextMessage) (*pb.Result, e
 			return &pb.Result{Msg: "T'as compté tout ça sans te tromper, srsly ?"}, nil
 		} else if errors.Is(err, playbot.InvalidOffsetError) {
 			return &pb.Result{Msg: "Offset invalide"}, nil
+		} else if errors.Is(err, textbot.InvalidUsageError) {
+			return &pb.Result{Msg: insults[rand.Intn(len(insults))]}, nil
 		}
 
 		return &pb.Result{}, err
@@ -59,6 +70,49 @@ func (s server) Execute(ctx context.Context, msg *pb.TextMessage) (*pb.Result, e
 
 		resultMsg := printMusicRecord(result)
 		return &pb.Result{Msg: resultMsg}, nil
+	} else if (result.Statistics != playbot.MusicRecordStatistics{}) {
+		// Statistics were returned.
+		var msg strings.Builder
+		fmt.Fprintf(
+			&msg,
+			"Posté la 1re fois par %s le %s sur %s.",
+			result.Statistics.FirstPostPerson.Name,
+			result.Statistics.FirstPostDate.Format("01-02-2006 15:04:05"),
+			result.Statistics.FirstPostChannel.Name,
+		)
+
+		fmt.Fprintf(
+			&msg,
+			" Posté %d fois par %d personne",
+			result.Statistics.PostsCount,
+			result.Statistics.PeopleCount,
+		)
+		plural(result.Statistics.PeopleCount, &msg)
+
+		fmt.Fprintf(
+			&msg, " sur %d channel", result.Statistics.ChannelsCount,
+		)
+		plural(result.Statistics.ChannelsCount, &msg)
+		fmt.Fprint(&msg, ".")
+
+		fmt.Fprintf(
+			&msg,
+			" %s l'a posté %d fois.",
+			result.Statistics.MaxPerson.Name,
+			result.Statistics.MaxPersonCount,
+		)
+
+		fmt.Fprintf(
+			&msg,
+			" Sauvegardé dans ses favoris par %d personne",
+			result.Statistics.FavoritesCount,
+		)
+		plural(result.Statistics.FavoritesCount, &msg)
+		fmt.Fprint(&msg, ".")
+
+		return &pb.Result{
+			Msg: msg.String(),
+		}, nil
 	} else if !cmd {
 		// No record was saved nor command executed.
 		log.Print("unknown command or record")
@@ -66,6 +120,12 @@ func (s server) Execute(ctx context.Context, msg *pb.TextMessage) (*pb.Result, e
 	}
 
 	return &pb.Result{}, nil
+}
+
+func plural(count int, builder *strings.Builder) {
+	if count == 0 || count > 1 {
+		fmt.Fprint(builder, "s")
+	}
 }
 
 func startServer() error {
@@ -84,13 +144,10 @@ func startServer() error {
 	)
 
 	repository, err := mariadb.New(
-		fmt.Sprintf(
-			"%s:%s@(%s)/%s",
-			config.DbUser,
-			config.DbPassword,
-			config.DbHost,
-			config.DbName,
-		),
+		config.DbUser,
+		config.DbPassword,
+		config.DbHost,
+		config.DbName,
 	)
 	if err != nil {
 		return err

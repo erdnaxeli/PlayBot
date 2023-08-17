@@ -20,7 +20,7 @@ CREATE TABLE `playbot` (
 ) ENGINE = InnoDB AUTO_INCREMENT = 100 DEFAULT CHARSET = utf8 COLLATE = utf8_unicode_ci COMMENT = 'table du bot irc';
 CREATE TABLE `playbot_chan` (
     `id` int(10) NOT NULL AUTO_INCREMENT,
-    `date` timestamp NULL DEFAULT current_timestamp(),
+    `date` timestamp(6) NULL DEFAULT current_timestamp(),
     `sender_irc` varchar(99) CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL,
     `content` int(10) NOT NULL,
     `chan` varchar(255) NOT NULL,
