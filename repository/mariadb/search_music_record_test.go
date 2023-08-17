@@ -32,7 +32,7 @@ func assertEqualSearchResults(
 }
 
 func getTestRepository(t *testing.T) playbot.Repository {
-	r, err := mariadb.New("test:test@(localhost)/test")
+	r, err := mariadb.New("test", "test", "localhost", "test")
 	require.Nil(
 		t,
 		err,

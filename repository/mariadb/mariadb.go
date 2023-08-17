@@ -2,6 +2,7 @@ package mariadb
 
 import (
 	"database/sql"
+	"fmt"
 
 	"github.com/erdnaxeli/PlayBot/types"
 	_ "github.com/go-sql-driver/mysql"
@@ -24,7 +25,11 @@ func (s searchResult) MusicRecord() types.MusicRecord {
 	return s.musicRecord
 }
 
-func New(dsn string) (mariaDbRepository, error) {
+func New(user string, password string, host string, dbname string) (mariaDbRepository, error) {
+	dsn := fmt.Sprintf(
+		"%s:%s@(%s)/%s?parseTime=true&loc=Europe%%2FParis",
+		user, password, host, dbname,
+	)
 	db, err := sql.Open("mysql", dsn)
 	if err != nil {
 		return mariaDbRepository{}, err

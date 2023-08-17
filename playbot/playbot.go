@@ -14,7 +14,8 @@ type Repository interface {
 	// to return the id from.
 	GetLastID(channel types.Channel, offset int) (int64, error)
 	// Get a music record by ID.
-	GetMusicRecord(musicRecordId int64) (types.MusicRecord, error)
+	GetMusicRecord(musicRecordID int64) (types.MusicRecord, error)
+	GetMusicRecordStatistics(musicRecordID int64) (MusicRecordStatistics, error)
 	// Return a slice of tags for the given music record.
 	GetTags(musicRecordId int64) ([]string, error)
 	// Save a music post and return the music record id along to a bool which is

@@ -12,6 +12,7 @@ import (
 	"errors"
 	"log"
 	"regexp"
+	"strconv"
 	"sync"
 
 	"github.com/erdnaxeli/PlayBot/playbot"
@@ -28,7 +29,12 @@ type Result struct {
 	IsNew bool
 	// If the MusicRecord come from a search, this is the count of results.
 	Count int64
+	// Some command may return statistics
+	Statistics playbot.MusicRecordStatistics
 }
+
+var InvalidUsageError = errors.New("invalid command usage")
+var NotImplementedError = errors.New("not implemented")
 
 type textBot struct {
 	playbot           *playbot.Playbot
@@ -73,23 +79,21 @@ func (t *textBot) Execute(
 	ok := true
 	var err error
 
-	notImplementedError := errors.New("not implemented")
-
 	switch cmd {
 	case "!broken":
-		err = notImplementedError
+		err = NotImplementedError
 	case "!conf":
-		err = notImplementedError
+		err = NotImplementedError
 	case "!fav":
 		err = t.favCmd(channel, person, cmdArgs)
 	case "!later":
-		err = notImplementedError
+		err = NotImplementedError
 	case "!get":
 		result, err = t.getCmd(channel, person, cmdArgs)
 	case "!help":
-		err = notImplementedError
+		err = NotImplementedError
 	case "!stats":
-		err = notImplementedError
+		result, err = t.statsCmd(channel, person, cmdArgs)
 	case "!tag":
 		err = t.saveTagsCmd(channel, person, cmdArgs)
 	default:
@@ -117,6 +121,37 @@ func (t *textBot) saveLastCommand(channel types.Channel, cmd []string) {
 	defer t.lastCommandsMutex.Unlock()
 
 	t.lastCommands[channel] = cmd
+}
+
+func (t *textBot) getRecordIDFromArgs(channel types.Channel, args []string) (int64, []string, error) {
+	recordID, args := parseID(args)
+	if recordID > 0 {
+		return recordID, args, nil
+	}
+
+	if recordID < -10 {
+		return 0, args, OffsetToBigError
+	}
+
+	recordID, err := t.playbot.GetLastID(channel, int(recordID))
+	if err != nil {
+		return 0, args, err
+	}
+
+	return recordID, args, nil
+}
+
+func parseID(args []string) (int64, []string) {
+	if len(args) == 0 {
+		return 0, args
+	}
+
+	recordID, err := strconv.ParseInt(args[0], 10, 64)
+	if err != nil {
+		return 0, args
+	}
+
+	return recordID, args[1:]
 }
 
 func parseArgs(msg string) []string {

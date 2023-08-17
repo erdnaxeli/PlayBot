@@ -54,7 +54,7 @@ func assertEqualRecordRow(t *testing.T, tx *sql.Tx, record types.MusicRecord, ro
 }
 
 func getTestRepository(t *testing.T) mariaDbRepository {
-	r, err := New("test:test@(localhost)/test")
+	r, err := New("test", "test", "localhost", "test")
 	require.Nil(
 		t,
 		err,
