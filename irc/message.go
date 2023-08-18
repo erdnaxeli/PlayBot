@@ -29,6 +29,10 @@ func parseMessage(msg string) Message {
 func parseParameters(parts []string) []string {
 	var parameters []string
 	for i, part := range parts {
+		if len(part) == 0 {
+			continue
+		}
+
 		if part[0] != ':' {
 			parameters = append(parameters, part)
 			continue

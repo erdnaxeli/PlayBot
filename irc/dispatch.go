@@ -1,7 +1,6 @@
 package irc
 
 import (
-	"fmt"
 	"log"
 	"strings"
 )
@@ -17,6 +16,7 @@ func (i *Conn) Dispatch() error {
 			return i.errIfConnected(err)
 		}
 
+		log.Print(line)
 		msg := parseMessage(line)
 		var event Event
 
@@ -40,8 +40,6 @@ func (i *Conn) Dispatch() error {
 				return err
 			}
 		}
-
-		fmt.Printf("%+v\n", msg)
 	}
 }
 

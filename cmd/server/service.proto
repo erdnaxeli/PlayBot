@@ -15,4 +15,5 @@ message TextMessage {
 
 message Result {
     string msg = 1;
+    string to = 2;
 }

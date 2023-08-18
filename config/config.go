@@ -6,12 +6,20 @@ import (
 	"os"
 )
 
+type IrcConfig struct {
+	Host     string   `json:"host"`
+	Port     int      `json:"port"`
+	Nick     string   `json:"nick"`
+	Channels []string `json:"channels"`
+}
+
 type Config struct {
-	YoutubeApiKey string `json:"youtube_api_key"`
-	DbName        string `json:"bdd"`
-	DbUser        string `json:"user"`
-	DbHost        string `json:"host"`
-	DbPassword    string `json:"passwd"`
+	YoutubeApiKey string    `json:"youtube_api_key"`
+	DbName        string    `json:"bdd"`
+	DbUser        string    `json:"user"`
+	DbHost        string    `json:"host"`
+	DbPassword    string    `json:"passwd"`
+	Irc           IrcConfig `json:"irc"`
 }
 
 func ReadConfigFile(filename string) (Config, error) {
@@ -29,7 +37,7 @@ func ReadConfigFile(filename string) (Config, error) {
 	var config Config
 	err = json.Unmarshal(content, &config)
 	if err != nil {
-		return Config{}, nil
+		return Config{}, err
 	}
 
 	return config, nil

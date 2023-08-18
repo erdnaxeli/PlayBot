@@ -9,7 +9,7 @@ import (
 	"net/http"
 	"strings"
 
-	pb "github.com/erdnaxeli/PlayBot/cmd/cli/rpc"
+	pb "github.com/erdnaxeli/PlayBot/cmd/server/rpc"
 	"github.com/erdnaxeli/PlayBot/config"
 	"github.com/erdnaxeli/PlayBot/extractors"
 	"github.com/erdnaxeli/PlayBot/extractors/ldjson"
@@ -45,16 +45,31 @@ func (s server) Execute(ctx context.Context, msg *pb.TextMessage) (*pb.Result, e
 	if err != nil {
 		if errors.Is(err, playbot.NoRecordFoundError) {
 			if result.Count > 0 {
-				return &pb.Result{Msg: "Tu tournes en rond, Jack !"}, nil
+				return &pb.Result{
+					Msg: "Tu tournes en rond, Jack !",
+					To:  msg.ChannelName,
+				}, nil
 			} else {
-				return &pb.Result{Msg: "Je n'ai rien dans ce registre."}, nil
+				return &pb.Result{
+					Msg: "Je n'ai rien dans ce registre.",
+					To:  msg.ChannelName,
+				}, nil
 			}
 		} else if errors.Is(err, textbot.OffsetToBigError) {
-			return &pb.Result{Msg: "T'as compté tout ça sans te tromper, srsly ?"}, nil
+			return &pb.Result{
+				Msg: "T'as compté tout ça sans te tromper, srsly ?",
+				To:  msg.ChannelName,
+			}, nil
 		} else if errors.Is(err, playbot.InvalidOffsetError) {
-			return &pb.Result{Msg: "Offset invalide"}, nil
+			return &pb.Result{
+				Msg: "Offset invalide",
+				To:  msg.ChannelName,
+			}, nil
 		} else if errors.Is(err, textbot.InvalidUsageError) {
-			return &pb.Result{Msg: insults[rand.Intn(len(insults))]}, nil
+			return &pb.Result{
+				Msg: insults[rand.Intn(len(insults))],
+				To:  msg.ChannelName,
+			}, nil
 		}
 
 		return &pb.Result{}, err
@@ -69,12 +84,12 @@ func (s server) Execute(ctx context.Context, msg *pb.TextMessage) (*pb.Result, e
 		}
 
 		resultMsg := printMusicRecord(result)
-		return &pb.Result{Msg: resultMsg}, nil
+		return &pb.Result{Msg: resultMsg, To: msg.ChannelName}, nil
 	} else if (result.Statistics != playbot.MusicRecordStatistics{}) {
 		// Statistics were returned.
-		var msg strings.Builder
+		var resultMsg strings.Builder
 		fmt.Fprintf(
-			&msg,
+			&resultMsg,
 			"Posté la 1re fois par %s le %s sur %s.",
 			result.Statistics.FirstPostPerson.Name,
 			result.Statistics.FirstPostDate.Format("01-02-2006 15:04:05"),
@@ -82,36 +97,37 @@ func (s server) Execute(ctx context.Context, msg *pb.TextMessage) (*pb.Result, e
 		)
 
 		fmt.Fprintf(
-			&msg,
+			&resultMsg,
 			" Posté %d fois par %d personne",
 			result.Statistics.PostsCount,
 			result.Statistics.PeopleCount,
 		)
-		plural(result.Statistics.PeopleCount, &msg)
+		plural(result.Statistics.PeopleCount, &resultMsg)
 
 		fmt.Fprintf(
-			&msg, " sur %d channel", result.Statistics.ChannelsCount,
+			&resultMsg, " sur %d channel", result.Statistics.ChannelsCount,
 		)
-		plural(result.Statistics.ChannelsCount, &msg)
-		fmt.Fprint(&msg, ".")
+		plural(result.Statistics.ChannelsCount, &resultMsg)
+		fmt.Fprint(&resultMsg, ".")
 
 		fmt.Fprintf(
-			&msg,
+			&resultMsg,
 			" %s l'a posté %d fois.",
 			result.Statistics.MaxPerson.Name,
 			result.Statistics.MaxPersonCount,
 		)
 
 		fmt.Fprintf(
-			&msg,
+			&resultMsg,
 			" Sauvegardé dans ses favoris par %d personne",
 			result.Statistics.FavoritesCount,
 		)
-		plural(result.Statistics.FavoritesCount, &msg)
-		fmt.Fprint(&msg, ".")
+		plural(result.Statistics.FavoritesCount, &resultMsg)
+		fmt.Fprint(&resultMsg, ".")
 
 		return &pb.Result{
-			Msg: msg.String(),
+			Msg: resultMsg.String(),
+			To:  msg.ChannelName,
 		}, nil
 	} else if !cmd {
 		// No record was saved nor command executed.
