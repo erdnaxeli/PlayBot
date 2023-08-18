@@ -8,6 +8,7 @@ import (
 	"math/rand"
 	"net/http"
 	"strings"
+	"sync"
 
 	pb "github.com/erdnaxeli/PlayBot/cmd/server/rpc"
 	"github.com/erdnaxeli/PlayBot/config"
@@ -25,15 +26,35 @@ var insults = [...]string{
 	"T'es mauvais, Jack !",
 }
 
+const STX = rune(2)
+
 type textBot interface {
 	Execute(string, string, string) (textbot.Result, bool, error)
 }
 
-type server struct {
-	textBot textBot
+type userNickAssociationRepository interface {
+	GetUserFromNick(nick string) (string, error)
+	GetUserFromCode(code string) (string, error)
+	SaveAssociation(user string, nick string) error
 }
 
-func (s server) Execute(ctx context.Context, msg *pb.TextMessage) (*pb.Result, error) {
+type server struct {
+	textBot    textBot
+	repository userNickAssociationRepository
+
+	ctcMutex     sync.RWMutex
+	codesToCheck map[string]string
+}
+
+func NewServer(bot textBot, repository userNickAssociationRepository) *server {
+	return &server{
+		textBot:      bot,
+		repository:   repository,
+		codesToCheck: make(map[string]string),
+	}
+}
+
+func (s *server) Execute(ctx context.Context, msg *pb.TextMessage) (*pb.Result, error) {
 	log.Printf(
 		"Parsing message by %s in %s: %s",
 		msg.PersonName,
@@ -41,35 +62,105 @@ func (s server) Execute(ctx context.Context, msg *pb.TextMessage) (*pb.Result, e
 		msg.Msg,
 	)
 
+	if msg.ChannelName == "PlayTest" && msg.Msg[0:2] == "PB" {
+		// user authentication
+		s.ctcMutex.Lock()
+		defer s.ctcMutex.Unlock()
+
+		s.codesToCheck[msg.PersonName] = msg.Msg
+
+		return makeResult(
+			&pb.IrcMessage{
+				Msg: "Vérification en cours…",
+				To:  msg.PersonName,
+			},
+			&pb.IrcMessage{
+				Msg: fmt.Sprintf("info %s", msg.PersonName),
+				To:  "NickServ",
+			},
+		), nil
+	}
+	if msg.PersonName == "NickServ" {
+		if len(s.codesToCheck) == 0 {
+			log.Printf("Received an unexpected message from NickServ: %s.", msg.Msg)
+			return &pb.Result{}, nil
+		}
+
+		log.Print("Received a message from NickServ.")
+		s.ctcMutex.Lock()
+		defer s.ctcMutex.Unlock()
+
+		for nick, code := range s.codesToCheck {
+			log.Printf("Trying to auth %s.", nick)
+
+			if msg.Msg == fmt.Sprintf("Le pseudo %s%s%s n'est pas enregistré.", string(STX), nick, string(STX)) {
+				log.Print("Unregistered nick")
+				return makeResult(&pb.IrcMessage{
+					Msg: "Il faut que ton pseudo soit enregistré auprès de NickServ pour pouvoir t'authentifier.",
+					To:  nick,
+				}), nil
+			} else if msg.Msg != fmt.Sprintf("%s est actuellement connecté.", nick) {
+				continue
+			}
+
+			log.Printf("Ok, authenticating nick %s.", nick)
+			delete(s.codesToCheck, nick)
+
+			user, err := s.repository.GetUserFromCode(code)
+			if err != nil {
+				return &pb.Result{}, err
+			} else if user == "" {
+				log.Printf("Unknown code.")
+				return makeResult(&pb.IrcMessage{
+					Msg: "Code inconnu. Va sur http://nightiies.iiens.net/links/fav pour obtenir ton code personel.",
+					To:  nick,
+				}), nil
+			}
+
+			log.Printf("Code ok.")
+			err = s.repository.SaveAssociation(user, nick)
+			if err != nil {
+				return &pb.Result{}, nil
+			}
+
+			return makeResult(&pb.IrcMessage{
+				Msg: "Association effectuée. Utilise la commande !fav pour enregistrer un lien dans tes favoris.",
+				To:  nick,
+			}), nil
+		}
+
+		return &pb.Result{}, nil
+	}
+
 	result, cmd, err := s.textBot.Execute(msg.ChannelName, msg.PersonName, msg.Msg)
 	if err != nil {
 		if errors.Is(err, playbot.NoRecordFoundError) {
 			if result.Count > 0 {
-				return &pb.Result{
+				return makeResult(&pb.IrcMessage{
 					Msg: "Tu tournes en rond, Jack !",
 					To:  msg.ChannelName,
-				}, nil
+				}), nil
 			} else {
-				return &pb.Result{
+				return makeResult(&pb.IrcMessage{
 					Msg: "Je n'ai rien dans ce registre.",
 					To:  msg.ChannelName,
-				}, nil
+				}), nil
 			}
 		} else if errors.Is(err, textbot.OffsetToBigError) {
-			return &pb.Result{
+			return makeResult(&pb.IrcMessage{
 				Msg: "T'as compté tout ça sans te tromper, srsly ?",
 				To:  msg.ChannelName,
-			}, nil
+			}), nil
 		} else if errors.Is(err, playbot.InvalidOffsetError) {
-			return &pb.Result{
+			return makeResult(&pb.IrcMessage{
 				Msg: "Offset invalide",
 				To:  msg.ChannelName,
-			}, nil
+			}), nil
 		} else if errors.Is(err, textbot.InvalidUsageError) {
-			return &pb.Result{
+			return makeResult(&pb.IrcMessage{
 				Msg: insults[rand.Intn(len(insults))],
 				To:  msg.ChannelName,
-			}, nil
+			}), nil
 		}
 
 		return &pb.Result{}, err
@@ -84,7 +175,7 @@ func (s server) Execute(ctx context.Context, msg *pb.TextMessage) (*pb.Result, e
 		}
 
 		resultMsg := printMusicRecord(result)
-		return &pb.Result{Msg: resultMsg, To: msg.ChannelName}, nil
+		return makeResult(&pb.IrcMessage{Msg: resultMsg, To: msg.ChannelName}), nil
 	} else if (result.Statistics != playbot.MusicRecordStatistics{}) {
 		// Statistics were returned.
 		var resultMsg strings.Builder
@@ -125,10 +216,10 @@ func (s server) Execute(ctx context.Context, msg *pb.TextMessage) (*pb.Result, e
 		plural(result.Statistics.FavoritesCount, &resultMsg)
 		fmt.Fprint(&resultMsg, ".")
 
-		return &pb.Result{
+		return makeResult(&pb.IrcMessage{
 			Msg: resultMsg.String(),
 			To:  msg.ChannelName,
-		}, nil
+		}), nil
 	} else if !cmd {
 		// No record was saved nor command executed.
 		log.Print("unknown command or record")
@@ -141,6 +232,12 @@ func (s server) Execute(ctx context.Context, msg *pb.TextMessage) (*pb.Result, e
 func plural(count int, builder *strings.Builder) {
 	if count == 0 || count > 1 {
 		fmt.Fprint(builder, "s")
+	}
+}
+
+func makeResult(messages ...*pb.IrcMessage) *pb.Result {
+	return &pb.Result{
+		Msg: messages,
 	}
 }
 
@@ -170,7 +267,7 @@ func startServer() error {
 	}
 
 	bot := textbot.New(playbot.New(extractor, repository))
-	server := server{textBot: bot}
+	server := NewServer(bot, repository)
 	handler := pb.NewPlaybotCliServer(server)
 
 	log.Print("Starting the server")

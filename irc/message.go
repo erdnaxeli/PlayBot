@@ -45,3 +45,14 @@ func parseParameters(parts []string) []string {
 
 	return parameters
 }
+
+// GetNick extracts the nick part from a prefix in the form "nick!username@host".
+// If the prefix is invalid, it returns an empty string.
+func (i *Conn) GetNick(prefix string) string {
+	nick, _, found := strings.Cut(prefix, "!")
+	if !found {
+		return ""
+	}
+
+	return nick
+}

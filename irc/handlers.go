@@ -6,6 +6,7 @@ type Handler func(*Conn, Message) error
 const (
 	// Dummy value that corresponds to the the zero value of the Event type.
 	NO_EVENT Event = iota
+	NOTICE
 	RPL_WELCOME
 	PRIVMSG
 )
@@ -21,6 +22,10 @@ func (i *Conn) AddHandler(event Event, handler Handler) {
 
 func (i *Conn) OnConnect(handler Handler) {
 	i.AddHandler(RPL_WELCOME, handler)
+}
+
+func (i *Conn) OnNotice(handler Handler) {
+	i.AddHandler(NOTICE, handler)
 }
 
 func (i *Conn) OnPrivmsg(handler Handler) {

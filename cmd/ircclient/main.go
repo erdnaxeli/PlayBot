@@ -10,6 +10,11 @@ import (
 	"github.com/erdnaxeli/PlayBot/irc"
 )
 
+type bot struct {
+	client rpc.PlaybotCli
+	config config.Config
+}
+
 func main() {
 	config, err := config.ReadConfigFile("playbot.conf")
 	if err != nil {
@@ -28,41 +33,53 @@ func main() {
 	}
 
 	client := rpc.NewPlaybotCliProtobufClient("http://localhost:1111", &http.Client{})
+	b := bot{client, config}
 
-	conn.OnConnect(func(c *irc.Conn, m irc.Message) error {
-		for _, channel := range config.Irc.Channels {
-			err := c.Join(channel)
-			if err != nil {
-				return err
-			}
-		}
+	conn.OnConnect(b.onConnect)
+	conn.OnNotice(b.onMessage)
+	conn.OnPrivmsg(b.onMessage)
 
-		return nil
-	})
-	conn.OnPrivmsg(func(c *irc.Conn, m irc.Message) error {
-		result, err := client.Execute(
-			context.Background(),
-			&rpc.TextMessage{
-				ChannelName: m.Parameters[0],
-				Msg:         m.Parameters[1],
-			},
-		)
-		if err != nil {
-			log.Printf("Error while executing command: %s", err)
-			return nil
-		}
+	log.Fatal(conn.Dispatch())
+}
 
-		if result.To == "" || result.Msg == "" {
-			return nil
-		}
-
-		err = c.Privmsg(result.To, result.Msg)
+func (b bot) onConnect(c *irc.Conn, m irc.Message) error {
+	for _, channel := range b.config.Irc.Channels {
+		err := c.Join(channel)
 		if err != nil {
 			return err
 		}
+	}
 
+	return nil
+}
+
+func (b bot) onMessage(c *irc.Conn, m irc.Message) error {
+	nick := c.GetNick(m.Prefix)
+	if nick == "" {
+		log.Printf("Received a message with an unknown nick: %+v", m)
 		return nil
-	})
+	}
 
-	log.Fatal(conn.Dispatch())
+	result, err := b.client.Execute(
+		context.Background(),
+		&rpc.TextMessage{
+			ChannelName: m.Parameters[0],
+			Msg:         m.Parameters[1],
+			PersonName:  nick,
+		},
+	)
+	if err != nil {
+		log.Printf("Error while executing command: %s", err)
+		return nil
+	}
+
+	for _, msg := range result.Msg {
+		log.Print(msg)
+		err = c.Privmsg(msg.To, msg.Msg)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
