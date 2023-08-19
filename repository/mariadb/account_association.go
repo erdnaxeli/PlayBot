@@ -57,7 +57,9 @@ func (r mariaDbRepository) SaveAssociation(user string, nick string) error {
 	result, err := r.db.Exec(
 		`
 			update playbot_codes
-			set nick = ?
+			set
+				nick = ?,
+				date = now()
 			where user = ?
 		`,
 		nick,

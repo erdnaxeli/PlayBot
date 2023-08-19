@@ -82,7 +82,6 @@ func (s *server) Execute(ctx context.Context, msg *pb.TextMessage) (*pb.Result, 
 	}
 	if msg.PersonName == "NickServ" {
 		if len(s.codesToCheck) == 0 {
-			log.Printf("Received an unexpected message from NickServ: %s.", msg.Msg)
 			return &pb.Result{}, nil
 		}
 
@@ -120,7 +119,7 @@ func (s *server) Execute(ctx context.Context, msg *pb.TextMessage) (*pb.Result, 
 			log.Printf("Code ok.")
 			err = s.repository.SaveAssociation(user, nick)
 			if err != nil {
-				return &pb.Result{}, nil
+				return &pb.Result{}, err
 			}
 
 			return makeResult(&pb.IrcMessage{
