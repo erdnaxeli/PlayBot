@@ -1,5 +1,10 @@
 # go build output
 PlayBot
+ircclient
+server
 
 # config
 playbot.conf
+
+# go generate
+cmd/server/rpc

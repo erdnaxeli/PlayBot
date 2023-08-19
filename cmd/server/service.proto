@@ -14,5 +14,10 @@ message TextMessage {
 }
 
 message Result {
+    repeated IrcMessage msg = 1;
+}
+
+message IrcMessage {
     string msg = 1;
+    string to = 2;
 }
