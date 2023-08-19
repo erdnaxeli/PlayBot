@@ -29,6 +29,8 @@ func (i *Conn) Dispatch() error {
 			}
 		case "001":
 			event = RPL_WELCOME
+		case "MODE":
+			event = MODE
 		case "NOTICE":
 			event = NOTICE
 		case "PRIVMSG":

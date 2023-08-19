@@ -7,10 +7,11 @@ import (
 )
 
 type IrcConfig struct {
-	Host     string   `json:"host"`
-	Port     int      `json:"port"`
-	Nick     string   `json:"nick"`
-	Channels []string `json:"channels"`
+	Host             string   `json:"host"`
+	Port             int      `json:"port"`
+	Nick             string   `json:"nick"`
+	Channels         []string `json:"channels"`
+	NickServPassword string   `json:"nickserv_password"`
 }
 
 type Config struct {
