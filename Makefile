@@ -1,15 +1,25 @@
 export CGO_ENABLED = 0
 
-generate:
-	go generate ./...
+GO = go1.21.0
 
-build-cli:
-	go build -ldflags="-s -w" ./cmd/cli
+all: build
+
+build-server:
+	$(GO) build -ldflags="-s -w" ./cmd/server
+
+build-ircclient:
+	$(GO) build -ldflags="-s -w" ./cmd/ircclient
+
+build: build-ircclient build-server
+
+generate:
+	$(GO) generate ./...
+
 
 style:
-	go fmt ./...
-	golangci-lint run
+	$(GO) fmt ./...
+	$(GO) run github.com/golangci/golangci-lint/cmd/golangci-lint@v1.54.1 run
 
 test:
-	go test ./...
+	$(GO) test ./...
 
