@@ -17,6 +17,10 @@ func (t *textBot) saveMusicPost(
 		return Result{}, err
 	}
 
+	if recordID == 0 {
+		return Result{}, nil
+	}
+
 	log.Println("record saved", recordID, musicRecord)
 	err = t.saveTags(msg, recordID)
 	if err != nil {

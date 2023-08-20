@@ -12,17 +12,17 @@ func New(extractors ...MatcherExtractor) MultipleSourcesExtractor {
 	}
 }
 
-func (e *MultipleSourcesExtractor) Extract(url string) (string, types.MusicRecord, error) {
+func (e MultipleSourcesExtractor) Extract(url string) (types.MusicRecord, error) {
 	for _, extractor := range e.extractors {
-		if matchedUrl, recordId := extractor.Match(url); recordId != "" {
+		if _, recordId := extractor.Match(url); recordId != "" {
 			record, err := extractor.Extract(recordId)
 			if err != nil {
-				return "", types.MusicRecord{}, err
+				return types.MusicRecord{}, err
 			} else {
-				return matchedUrl, record, nil
+				return record, nil
 			}
 		}
 	}
 
-	return "", types.MusicRecord{}, &UnknownRecordSourceError{}
+	return types.MusicRecord{}, nil
 }

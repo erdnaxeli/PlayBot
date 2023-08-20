@@ -240,10 +240,6 @@ func (s *server) Execute(ctx context.Context, msg *pb.TextMessage) (*pb.Result, 
 			Msg: resultMsg.String(),
 			To:  msg.ChannelName,
 		}), nil
-	} else if !cmd {
-		// No record was saved nor command executed.
-		log.Print("unknown command or record")
-		return emptyResult, errors.New("unknown command or record")
 	}
 
 	return emptyResult, nil

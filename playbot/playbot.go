@@ -4,7 +4,6 @@ import (
 	"context"
 	"sync"
 
-	"github.com/erdnaxeli/PlayBot/extractors"
 	"github.com/erdnaxeli/PlayBot/types"
 )
 
@@ -35,13 +34,18 @@ type Repository interface {
 	) (int64, chan SearchResult, error)
 }
 
+type Extractor interface {
+	// Given an URL, Extract tries to extract the record information and returns it.
+	Extract(url string) (types.MusicRecord, error)
+}
+
 type SearchResult interface {
 	Id() int64
 	MusicRecord() types.MusicRecord
 }
 
 type Playbot struct {
-	extractor  extractors.MultipleSourcesExtractor
+	extractor  Extractor
 	repository Repository
 
 	// Contains the ongoing searches.
@@ -56,7 +60,7 @@ type searchCursor struct {
 	search Search
 }
 
-func New(extractor extractors.MultipleSourcesExtractor, repository Repository) *Playbot {
+func New(extractor Extractor, repository Repository) *Playbot {
 	return &Playbot{
 		extractor:  extractor,
 		repository: repository,
