@@ -28,8 +28,12 @@ var insults = [...]string{
 
 const STX = rune(2)
 
+var emptyResult = &pb.Result{}
+
 type textBot interface {
-	Execute(string, string, string) (textbot.Result, bool, error)
+	Execute(
+		channelName string, personName string, msg string, user string,
+	) (textbot.Result, bool, error)
 }
 
 type userNickAssociationRepository interface {
@@ -82,7 +86,7 @@ func (s *server) Execute(ctx context.Context, msg *pb.TextMessage) (*pb.Result, 
 	}
 	if msg.PersonName == "NickServ" {
 		if len(s.codesToCheck) == 0 {
-			return &pb.Result{}, nil
+			return emptyResult, nil
 		}
 
 		log.Print("Received a message from NickServ.")
@@ -107,7 +111,7 @@ func (s *server) Execute(ctx context.Context, msg *pb.TextMessage) (*pb.Result, 
 
 			user, err := s.repository.GetUserFromCode(code)
 			if err != nil {
-				return &pb.Result{}, err
+				return emptyResult, err
 			} else if user == "" {
 				log.Printf("Unknown code.")
 				return makeResult(&pb.IrcMessage{
@@ -119,7 +123,7 @@ func (s *server) Execute(ctx context.Context, msg *pb.TextMessage) (*pb.Result, 
 			log.Printf("Code ok.")
 			err = s.repository.SaveAssociation(user, nick)
 			if err != nil {
-				return &pb.Result{}, err
+				return emptyResult, err
 			}
 
 			return makeResult(&pb.IrcMessage{
@@ -128,10 +132,15 @@ func (s *server) Execute(ctx context.Context, msg *pb.TextMessage) (*pb.Result, 
 			}), nil
 		}
 
-		return &pb.Result{}, nil
+		return emptyResult, nil
 	}
 
-	result, cmd, err := s.textBot.Execute(msg.ChannelName, msg.PersonName, msg.Msg)
+	user, err := s.repository.GetUserFromNick(msg.PersonName)
+	if err != nil {
+		return emptyResult, nil
+	}
+
+	result, cmd, err := s.textBot.Execute(msg.ChannelName, msg.PersonName, msg.Msg, user)
 	if err != nil {
 		if errors.Is(err, playbot.NoRecordFoundError) {
 			if result.Count > 0 {
@@ -145,14 +154,15 @@ func (s *server) Execute(ctx context.Context, msg *pb.TextMessage) (*pb.Result, 
 					To:  msg.ChannelName,
 				}), nil
 			}
-		} else if errors.Is(err, textbot.OffsetToBigError) {
-			return makeResult(&pb.IrcMessage{
-				Msg: "T'as compté tout ça sans te tromper, srsly ?",
-				To:  msg.ChannelName,
-			}), nil
+
 		} else if errors.Is(err, playbot.InvalidOffsetError) {
 			return makeResult(&pb.IrcMessage{
 				Msg: "Offset invalide",
+				To:  msg.ChannelName,
+			}), nil
+		} else if errors.Is(err, textbot.OffsetToBigError) {
+			return makeResult(&pb.IrcMessage{
+				Msg: "T'as compté tout ça sans te tromper, srsly ?",
 				To:  msg.ChannelName,
 			}), nil
 		} else if errors.Is(err, textbot.InvalidUsageError) {
@@ -160,9 +170,20 @@ func (s *server) Execute(ctx context.Context, msg *pb.TextMessage) (*pb.Result, 
 				Msg: insults[rand.Intn(len(insults))],
 				To:  msg.ChannelName,
 			}), nil
+		} else if errors.Is(err, textbot.AuthenticationRequired) {
+			return makeResult(
+				&pb.IrcMessage{
+					Msg: printMusicRecord(result),
+					To:  msg.ChannelName,
+				},
+				&pb.IrcMessage{
+					Msg: "Ce nick n'est associé à aucun login arise. Va sur http://nightiies.iiens.net/links/fav pour obtenir ton code personel.",
+					To:  msg.PersonName,
+				},
+			), nil
 		}
 
-		return &pb.Result{}, err
+		return emptyResult, err
 	}
 
 	if result.ID != 0 {
@@ -222,10 +243,10 @@ func (s *server) Execute(ctx context.Context, msg *pb.TextMessage) (*pb.Result, 
 	} else if !cmd {
 		// No record was saved nor command executed.
 		log.Print("unknown command or record")
-		return &pb.Result{}, errors.New("unknown command or record")
+		return emptyResult, errors.New("unknown command or record")
 	}
 
-	return &pb.Result{}, nil
+	return emptyResult, nil
 }
 
 func plural(count int, builder *strings.Builder) {
