@@ -1,6 +1,11 @@
 export CGO_ENABLED = 0
 
-GO = go1.21.0
+ifeq ($(CI), true)
+	GO = go
+else
+	GO = go1.21.0
+endif
+
 
 all: build
 
