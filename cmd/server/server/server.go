@@ -166,16 +166,22 @@ func (s *server) Execute(ctx context.Context, msg *pb.TextMessage) (*pb.Result, 
 				To:  msg.ChannelName,
 			}), nil
 		} else if errors.Is(err, textbot.AuthenticationRequired) {
-			return makeResult(
-				&pb.IrcMessage{
-					Msg: printMusicRecord(result),
-					To:  msg.ChannelName,
-				},
-				&pb.IrcMessage{
-					Msg: "Ce nick n'est associé à aucun login arise. Va sur http://nightiies.iiens.net/links/fav pour obtenir ton code personel.",
-					To:  msg.PersonName,
-				},
-			), nil
+			authMsg := &pb.IrcMessage{
+				Msg: "Ce nick n'est associé à aucun login arise. Va sur http://nightiies.iiens.net/links/fav pour obtenir ton code personel.",
+				To:  msg.PersonName,
+			}
+
+			if result.ID != 0 {
+				return makeResult(
+					&pb.IrcMessage{
+						Msg: printMusicRecord(result),
+						To:  msg.ChannelName,
+					},
+					authMsg,
+				), nil
+			} else {
+				return makeResult(authMsg), nil
+			}
 		}
 
 		return emptyResult, err

@@ -34,7 +34,9 @@ func printMusicRecord(result textbot.Result) string {
 	}
 
 	fmt.Fprint(&b, " ", LIGHT_BLUE, result.Duration.String())
-	fmt.Fprint(&b, NORMAL, " => ", result.Url)
+	if result.Url != "" {
+		fmt.Fprint(&b, NORMAL, " => ", result.Url)
+	}
 
 	var tags []string
 	for _, tag := range result.Tags {
