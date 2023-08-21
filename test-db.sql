@@ -66,7 +66,8 @@ CREATE TABLE `playbot_chan` (
 CREATE TABLE `playbot_codes` (
   `user` varchar(255) CHARACTER SET latin1 COLLATE latin1_swedish_ci NOT NULL,
   `code` varchar(25) CHARACTER SET latin1 COLLATE latin1_swedish_ci NOT NULL,
-  `nick` varchar(255) CHARACTER SET latin1 COLLATE latin1_swedish_ci DEFAULT NULL
+  `nick` varchar(255) CHARACTER SET latin1 COLLATE latin1_swedish_ci DEFAULT NULL,
+  `date` timestamp(6) NULL DEFAULT current_timestamp(6)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
