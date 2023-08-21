@@ -13,10 +13,14 @@ import (
 // and an error.
 func (p *Playbot) ParseAndSaveMusicRecord(
 	msg string, person types.Person, channel types.Channel,
-) (int64, types.MusicRecord, bool, error) {
-	_, musicRecord, err := p.extractor.Extract(msg)
+) (recordID int64, record types.MusicRecord, isNew bool, err error) {
+	musicRecord, err := p.extractor.Extract(msg)
 	if err != nil {
-		return 0, musicRecord, false, err
+		return 0, types.MusicRecord{}, false, err
+	}
+
+	if (musicRecord == types.MusicRecord{}) {
+		return 0, musicRecord, false, nil
 	}
 
 	recordId, isNew, err := p.repository.SaveMusicPost(types.MusicPost{
@@ -25,7 +29,7 @@ func (p *Playbot) ParseAndSaveMusicRecord(
 		Channel:     channel,
 	})
 	if err != nil {
-		return recordId, types.MusicRecord{}, isNew, fmt.Errorf("error while saving music record: %w", err)
+		return recordId, types.MusicRecord{}, isNew, fmt.Errorf("error while saving music record: %v", err)
 	}
 
 	return recordId, musicRecord, isNew, nil

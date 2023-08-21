@@ -9,7 +9,6 @@
 package textbot
 
 import (
-	"errors"
 	"log"
 	"regexp"
 	"strconv"
@@ -32,9 +31,6 @@ type Result struct {
 	// Some command may return statistics
 	Statistics playbot.MusicRecordStatistics
 }
-
-var InvalidUsageError = errors.New("invalid command usage")
-var NotImplementedError = errors.New("not implemented")
 
 type textBot struct {
 	playbot           *playbot.Playbot
@@ -59,7 +55,7 @@ func New(playbot *playbot.Playbot) *textBot {
 // If the Result object is equal to its zero value and the bool value is false, it means
 // nothing has been done.
 func (t *textBot) Execute(
-	channelName string, personName string, msg string,
+	channelName string, personName string, msg string, user string,
 ) (Result, bool, error) {
 	channel := types.Channel{Name: channelName}
 	person := types.Person{Name: personName}
@@ -85,7 +81,7 @@ func (t *textBot) Execute(
 	case "!conf":
 		err = NotImplementedError
 	case "!fav":
-		err = t.favCmd(channel, person, cmdArgs)
+		result, err = t.favCmd(channel, person, cmdArgs, user)
 	case "!later":
 		err = NotImplementedError
 	case "!get":

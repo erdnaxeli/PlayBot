@@ -4,7 +4,6 @@ import (
 	"context"
 	"sync"
 
-	"github.com/erdnaxeli/PlayBot/extractors"
 	"github.com/erdnaxeli/PlayBot/types"
 )
 
@@ -18,6 +17,11 @@ type Repository interface {
 	GetMusicRecordStatistics(musicRecordID int64) (MusicRecordStatistics, error)
 	// Return a slice of tags for the given music record.
 	GetTags(musicRecordId int64) ([]string, error)
+	// Save the given record into the user's favorites.
+	//
+	// If the record was already in the user's favorites, return no error. If the record
+	// does not exist, return a NoRecordFoundError.
+	SaveFav(user string, recordID int64) error
 	// Save a music post and return the music record id along to a bool which is
 	// true if the post is a new one, false is the post already existed. In the
 	// latter case, the post is updated.
@@ -30,13 +34,18 @@ type Repository interface {
 	) (int64, chan SearchResult, error)
 }
 
+type Extractor interface {
+	// Given an URL, Extract tries to extract the record information and returns it.
+	Extract(url string) (types.MusicRecord, error)
+}
+
 type SearchResult interface {
 	Id() int64
 	MusicRecord() types.MusicRecord
 }
 
 type Playbot struct {
-	extractor  extractors.MultipleSourcesExtractor
+	extractor  Extractor
 	repository Repository
 
 	// Contains the ongoing searches.
@@ -51,7 +60,7 @@ type searchCursor struct {
 	search Search
 }
 
-func New(extractor extractors.MultipleSourcesExtractor, repository Repository) *Playbot {
+func New(extractor Extractor, repository Repository) *Playbot {
 	return &Playbot{
 		extractor:  extractor,
 		repository: repository,

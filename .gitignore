@@ -1,7 +1,7 @@
 # go build output
-PlayBot
-ircclient
-server
+/PlayBot
+/ircclient
+/server
 
 # config
 playbot.conf
