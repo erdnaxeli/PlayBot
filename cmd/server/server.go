@@ -40,7 +40,13 @@ func startServer() error {
 	}
 
 	bot := textbot.New(playbot.New(extractor, repository))
-	server := server.NewServer(bot, repository)
+	server := server.NewServer(
+		config.Irc.Nick,
+		bot,
+		repository,
+		server.IrcMusicRecordPrinter{},
+		server.IrcStatisticsPrinter{},
+	)
 	handler := pb.NewPlaybotCliServer(server)
 
 	log.Print("Starting the server")

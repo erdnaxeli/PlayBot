@@ -37,19 +37,39 @@ type UserNickAssociationRepository interface {
 	SaveAssociation(user string, nick string) error
 }
 
+type MusicRecordPrinter interface {
+	Print(record textbot.Result) string
+}
+
+type StatisticsPrinter interface {
+	Print(stats playbot.MusicRecordStatistics) string
+}
+
 type server struct {
-	textBot    textBot
-	repository UserNickAssociationRepository
+	botNick       string
+	textBot       textBot
+	repository    UserNickAssociationRepository
+	recordPrinter MusicRecordPrinter
+	statsPrinter  StatisticsPrinter
 
 	ctcMutex     sync.RWMutex
 	codesToCheck map[string]string
 }
 
-func NewServer(bot textBot, repository UserNickAssociationRepository) *server {
+func NewServer(
+	nick string,
+	bot textBot,
+	repository UserNickAssociationRepository,
+	recordPrinter MusicRecordPrinter,
+	statsPrinter StatisticsPrinter,
+) *server {
 	return &server{
-		textBot:      bot,
-		repository:   repository,
-		codesToCheck: make(map[string]string),
+		botNick:       nick,
+		textBot:       bot,
+		repository:    repository,
+		recordPrinter: recordPrinter,
+		statsPrinter:  statsPrinter,
+		codesToCheck:  make(map[string]string),
 	}
 }
 
@@ -61,7 +81,7 @@ func (s *server) Execute(ctx context.Context, msg *pb.TextMessage) (*pb.Result, 
 		msg.Msg,
 	)
 
-	if msg.ChannelName == "PlayTest" && msg.Msg[0:2] == "PB" {
+	if msg.ChannelName == s.botNick && msg.Msg[0:2] == "PB" {
 		// user authentication
 		s.ctcMutex.Lock()
 		defer s.ctcMutex.Unlock()
@@ -132,7 +152,7 @@ func (s *server) Execute(ctx context.Context, msg *pb.TextMessage) (*pb.Result, 
 
 	user, err := s.repository.GetUserFromNick(msg.PersonName)
 	if err != nil {
-		return emptyResult, nil
+		return emptyResult, err
 	}
 
 	result, cmd, err := s.textBot.Execute(msg.ChannelName, msg.PersonName, msg.Msg, user)
@@ -152,7 +172,7 @@ func (s *server) Execute(ctx context.Context, msg *pb.TextMessage) (*pb.Result, 
 
 		} else if errors.Is(err, playbot.InvalidOffsetError) {
 			return makeResult(&pb.IrcMessage{
-				Msg: "Offset invalide",
+				Msg: "Offset invalide.",
 				To:  msg.ChannelName,
 			}), nil
 		} else if errors.Is(err, textbot.OffsetToBigError) {
@@ -174,7 +194,7 @@ func (s *server) Execute(ctx context.Context, msg *pb.TextMessage) (*pb.Result, 
 			if result.ID != 0 {
 				return makeResult(
 					&pb.IrcMessage{
-						Msg: printMusicRecord(result),
+						Msg: s.recordPrinter.Print(result),
 						To:  msg.ChannelName,
 					},
 					authMsg,
@@ -195,50 +215,13 @@ func (s *server) Execute(ctx context.Context, msg *pb.TextMessage) (*pb.Result, 
 			result.Url = ""
 		}
 
-		resultMsg := printMusicRecord(result)
+		resultMsg := s.recordPrinter.Print(result)
 		return makeResult(&pb.IrcMessage{Msg: resultMsg, To: msg.ChannelName}), nil
 	} else if (result.Statistics != playbot.MusicRecordStatistics{}) {
 		// Statistics were returned.
-		var resultMsg strings.Builder
-		fmt.Fprintf(
-			&resultMsg,
-			"Posté la 1re fois par %s le %s sur %s.",
-			result.Statistics.FirstPostPerson.Name,
-			result.Statistics.FirstPostDate.Format("01-02-2006 15:04:05"),
-			result.Statistics.FirstPostChannel.Name,
-		)
-
-		fmt.Fprintf(
-			&resultMsg,
-			" Posté %d fois par %d personne",
-			result.Statistics.PostsCount,
-			result.Statistics.PeopleCount,
-		)
-		plural(result.Statistics.PeopleCount, &resultMsg)
-
-		fmt.Fprintf(
-			&resultMsg, " sur %d channel", result.Statistics.ChannelsCount,
-		)
-		plural(result.Statistics.ChannelsCount, &resultMsg)
-		fmt.Fprint(&resultMsg, ".")
-
-		fmt.Fprintf(
-			&resultMsg,
-			" %s l'a posté %d fois.",
-			result.Statistics.MaxPerson.Name,
-			result.Statistics.MaxPersonCount,
-		)
-
-		fmt.Fprintf(
-			&resultMsg,
-			" Sauvegardé dans ses favoris par %d personne",
-			result.Statistics.FavoritesCount,
-		)
-		plural(result.Statistics.FavoritesCount, &resultMsg)
-		fmt.Fprint(&resultMsg, ".")
 
 		return makeResult(&pb.IrcMessage{
-			Msg: resultMsg.String(),
+			Msg: s.statsPrinter.Print(result.Statistics),
 			To:  msg.ChannelName,
 		}), nil
 	}
