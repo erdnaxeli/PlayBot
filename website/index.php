@@ -20,28 +20,28 @@ ini_set('display_errors', 1);
     
 
 // ariseid
-$consumer_key = '3731796bf1ef2d465dc74c5bd801ff90';
-$consumer_secret = 'df5f5a3eb5b40a50404107272e7124cb';
-$consumer_private_key = 'b3c354619848226a85a4a03c34cabf6d';
+//$consumer_key = '';
+//$consumer_secret = '';
+//$consumer_private_key = '';
 
 ini_set('session.gc_maxlifetime', 3600*24*7);
 session_set_cookie_params(3600*24*7);
-require_once("/usr/share/php/ariseid/client/OAuthAriseClient.php");
+//require_once("/usr/share/php/ariseid/client/OAuthAriseClient.php");
 
-$consumer = OAuthAriseClient::getInstance(
-    $consumer_key,
-    $consumer_secret,
-    $consumer_private_key
-);
+//$consumer = OAuthAriseClient::getInstance(
+//    $consumer_key,
+//    $consumer_secret,
+ //   $consumer_private_key
+//);
 
-if (isset($_POST['openid_url'])) {
-    $consumer->authenticate();
-}
+//if (isset($_POST['openid_url'])) {
+//    $consumer->authenticate();
+//}
 
-if ($consumer->has_just_authenticated()) {
-    session_regenerate_id();
-    $consumer->session_id_changed();
-}
+//if ($consumer->has_just_authenticated()) {
+//    session_regenerate_id();
+//    $consumer->session_id_changed();
+//}
 
 
 
