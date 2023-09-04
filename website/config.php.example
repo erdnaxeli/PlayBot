@@ -1,0 +1,10 @@
+<?php
+
+$bdd = array(
+	'host' => '',
+	'dbname' => '',
+	'user' => '',
+	'passwd' => ''
+);
+
+?>
