@@ -1,0 +1,64 @@
+@font-face {
+    font-family: 'Roboto';
+    src: url('font/Roboto-Regular.ttf');
+    font-weight: normal;
+    font-style: normal;
+}
+@font-face {
+    font-family: 'RobotoBold';
+    src: url('font/Roboto-Bold.ttf');
+    font-weight: normal;
+    font-style: normal;
+}
+
+body {
+    font-family: 'Roboto';
+    color: #111111;
+    background: #A9A9A9;
+}
+
+div.header {
+    text-align: center;
+    font-size: 3.5em;
+    margin-bottom: 30px;
+}
+
+div.content {
+    width: 940px;
+    margin: auto;
+}
+
+table.calendar {
+    width: 30%;
+    text-align: center;
+}
+
+div.content table {
+    border-collapse: collapse; /* Les bordures du tableau seront collées (plus joli) */
+    margin-left: auto;
+    margin-right:auto;
+}
+
+div.content table tr.table_header {
+    font-family: 'RobotoBold';
+    text-align: center;
+}
+
+div.content table td {
+    border: 1px solid black;
+    padding: 5px;
+}
+
+div.content table td img {
+    vertical-align: middle;
+}
+
+div.retour {
+    text-align: center;
+    margin-top: 30px;
+    font-size: 1.5em;
+}
+
+div.tags {
+    text-align: justify;
+}
