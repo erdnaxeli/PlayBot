@@ -3,7 +3,7 @@ require 'Slim/Slim.php';
 require 'config.php';
 \Slim\Slim::registerAutoloader();
 
-date_default_timezone_set(Europe/Paris);
+date_default_timezone_set("Europe/Paris");
 
 $app = new \Slim\Slim();
 $bdd = new PDO('mysql:host='.$bdd['host'].';dbname='.$bdd['dbname'], $bdd['user'], $bdd['passwd'], array(
