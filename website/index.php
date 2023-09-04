@@ -282,7 +282,7 @@ EOF;
     else {
         echo <<<FORM
 <div class='content'>
-    <form method='post' action='/links/fav'>
+    <form method='post' action='/fav'>
         Just click on "submit" : <input type='text' name='openid_url'>
         <input type='submit'>
     </form>
@@ -496,13 +496,13 @@ function printLinks ($req, $chan, $selectTags = true) {
         echo "<td>";
         switch ($donnees[1]) {
             case 'youtube':
-                echo "<a class='content' href='$donnees[2]'><img alt='youtube' src='/links/img/yt.png' /></a>";
+                echo "<a class='content' href='$donnees[2]'><img alt='youtube' src='/img/yt.png' /></a>";
                 break;
             case 'soundcloud':
-                echo "<a href='$donnees[2]'><img alt='soundcloud' src='/links/img/sc.png' /></a>";
+                echo "<a href='$donnees[2]'><img alt='soundcloud' src='/img/sc.png' /></a>";
                 break;
             case 'mixcloud':
-                echo "<a href='$donnees[2]'><img alt='mixcloud' src='/links/img/mc.png' width='40px' /></a>";
+                echo "<a href='$donnees[2]'><img alt='mixcloud' src='/img/mc.png' width='40px' /></a>";
                 break;
             default:
                 echo "<a href='$donnees[2]'>$donnees[1]</a>";
@@ -517,12 +517,12 @@ EOF;
 
         if (array_key_exists('fav', $donnees)) {
             if ($donnees['fav'])
-                echo "<td style='text-align:center'><img onClick='fav(".$donnees[6].")' id='".$donnees[6]."' src='/links/img/star-full.png' /></td>";
+                echo "<td style='text-align:center'><img onClick='fav(".$donnees[6].")' id='".$donnees[6]."' src='/img/star-full.png' /></td>";
             else
-                echo "<td style='text-align:center'><img onClick='fav(".$donnees[6].")' id='".$donnees[6]."' src='/links/img/star.png' /></td>";
+                echo "<td style='text-align:center'><img onClick='fav(".$donnees[6].")' id='".$donnees[6]."' src='/img/star.png' /></td>";
         }
         else
-            echo "<td style='text-align:center'><img onClick='fav(".$donnees[6].")' id='".$donnees[6]."' src='/links/img/star.png' /></td>";
+            echo "<td style='text-align:center'><img onClick='fav(".$donnees[6].")' id='".$donnees[6]."' src='/img/star.png' /></td>";
 
         // on affiche les tags
         $tags = array();
@@ -550,7 +550,7 @@ EOF;
             else
                 echo ' ';
 
-            echo "<a href='/links/$chan/tags/$tag'>$tag</a>";
+            echo "<a href='/$chan/tags/$tag'>$tag</a>";
         }
 
         echo '</td>';
