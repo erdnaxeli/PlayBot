@@ -2,6 +2,7 @@ package irc
 
 import (
 	"fmt"
+	"log"
 	"net"
 	"net/textproto"
 	"time"
@@ -44,7 +45,11 @@ func New(config Config) (*Conn, error) {
 func (i *Conn) sendRaw(msg string) error {
 	time.Sleep(time.Until(i.throttleDeadline))
 	err := i.writer.PrintfLine(msg)
-	i.throttleDeadline = i.throttleDeadline.Add(500 * time.Millisecond)
+	i.throttleDeadline = time.Now().Add(500 * time.Millisecond)
+
+	if err != nil {
+		log.Printf("Error while sending \"%s\": %v", msg, err)
+	}
 	return err
 }
 

@@ -5,6 +5,7 @@ import (
 	"crypto/tls"
 	"fmt"
 	"io"
+	"log"
 	"net/textproto"
 )
 
@@ -16,6 +17,7 @@ func (i *Conn) Connect() error {
 		nil,
 	)
 	if err != nil {
+		log.Printf("Unable to dial tls connection: %v", err)
 		return err
 	}
 
