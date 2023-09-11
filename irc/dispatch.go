@@ -13,6 +13,7 @@ func (i *Conn) Dispatch() error {
 	for {
 		line, err := i.read()
 		if err != nil {
+			log.Printf("Error received while reading from IRC connexion. Last data received is '%s'.", line)
 			return i.errIfConnected(err)
 		}
 
@@ -41,6 +42,7 @@ func (i *Conn) Dispatch() error {
 		if ok {
 			err := handler(i, msg)
 			if err != nil {
+				log.Printf("Error from %v handler: %v", handler, err)
 				return err
 			}
 		}
@@ -49,6 +51,7 @@ func (i *Conn) Dispatch() error {
 
 func (i *Conn) errIfConnected(err error) error {
 	if i.connected {
+		log.Printf("Error while reading from IRC connection: %v", err)
 		return err
 	}
 
