@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"crypto/tls"
 	"fmt"
-	"io"
 	"log"
 	"net/textproto"
 )
@@ -21,9 +20,7 @@ func (i *Conn) Connect() error {
 		return err
 	}
 
-	i.reader = textproto.NewReader(bufio.NewReader(
-		io.LimitReader(i.conn, 100_000),
-	))
+	i.reader = textproto.NewReader(bufio.NewReader(i.conn))
 	i.writer = textproto.NewWriter(bufio.NewWriter(i.conn))
 
 	err = i.sendf("NICK %s", i.config.Nick)
