@@ -6,6 +6,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/brianvoe/gofakeit/v6"
 	"github.com/erdnaxeli/PlayBot/playbot"
 	"github.com/erdnaxeli/PlayBot/textbot"
 	"github.com/erdnaxeli/PlayBot/types"
@@ -67,6 +68,229 @@ func (tp *TestPlayBot) SearchMusicRecord(
 ) (int64, playbot.SearchResult, error) {
 	args := tp.Called(ctx, search)
 	return args.Get(0).(int64), args.Get(1).(playbot.SearchResult), args.Error(2)
+}
+
+func TestExecute_fav_id(t *testing.T) {
+	// setup
+	channel := "#channel"
+	recordID := int64(42)
+	msg := fmt.Sprintf("!fav %d", recordID)
+	nick := "someNick"
+	user := "someUser"
+
+	tp := TestPlayBot{}
+	tp.On(
+		"ParseAndSaveMusicRecord",
+		fmt.Sprint(recordID),
+		types.Person{Name: nick},
+		types.Channel{Name: channel},
+	).Return(int64(0), types.MusicRecord{}, false, nil)
+	tp.On("SaveFav", user, recordID).Return(nil)
+
+	tb := textbot.New(&tp)
+
+	// test
+	result, ok, err := tb.Execute(
+		channel,
+		nick,
+		msg,
+		user,
+	)
+	require.Nil(t, err)
+
+	// assertions
+	tp.AssertExpectations(t)
+	assert.True(t, ok)
+	assert.Equal(t, textbot.Result{}, result)
+}
+
+func TestExecute_fav_offset(t *testing.T) {
+	// setup
+	channel := "#channel"
+	offset := -2
+	recordID := int64(42)
+	msg := fmt.Sprintf("!fav %d", offset)
+	nick := "someNick"
+	user := "someUser"
+
+	tp := TestPlayBot{}
+	tp.On(
+		"ParseAndSaveMusicRecord",
+		fmt.Sprint(offset),
+		types.Person{Name: nick},
+		types.Channel{Name: channel},
+	).Return(int64(0), types.MusicRecord{}, false, nil)
+	tp.On("GetLastID", types.Channel{Name: channel}, offset).Return(recordID, nil)
+	tp.On("SaveFav", user, recordID).Return(nil)
+
+	tb := textbot.New(&tp)
+
+	// test
+	result, ok, err := tb.Execute(
+		channel,
+		nick,
+		msg,
+		user,
+	)
+	require.Nil(t, err)
+
+	// assertions
+	tp.AssertExpectations(t)
+	assert.True(t, ok)
+	assert.Equal(t, textbot.Result{}, result)
+}
+
+func TestExecute_fav_noIDnorOffset(t *testing.T) {
+	// setup
+	channel := "#channel"
+	recordID := int64(42)
+	msg := "!fav"
+	nick := "someNick"
+	user := "someUser"
+
+	tp := TestPlayBot{}
+	tp.On("GetLastID", types.Channel{Name: channel}, 0).Return(recordID, nil)
+	tp.On("SaveFav", user, recordID).Return(nil)
+
+	tb := textbot.New(&tp)
+
+	// test
+	result, ok, err := tb.Execute(
+		channel,
+		nick,
+		msg,
+		user,
+	)
+	require.Nil(t, err)
+
+	// assertions
+	tp.AssertExpectations(t)
+	assert.True(t, ok)
+	assert.Equal(t, textbot.Result{}, result)
+}
+
+func TestExecute_fav_musicRecord(t *testing.T) {
+	// setup
+	channel := "#channel"
+	recordID := int64(42)
+	newTags := []string{"tag1", "tag2"}
+	tags := []string{"tag1", "tag2", "tag3"}
+	// The given id "1" will be ignored.
+	msg := "1 https://someURL #tag1 #tag2"
+	nick := "someNick"
+	user := "someUser"
+	var musicRecord types.MusicRecord
+	_ = gofakeit.Struct(&musicRecord)
+	isNew := true
+
+	tp := TestPlayBot{}
+	tp.On(
+		"ParseAndSaveMusicRecord",
+		msg,
+		types.Person{Name: nick},
+		types.Channel{Name: channel},
+	).Return(recordID, musicRecord, isNew, nil)
+	tp.On("SaveTags", recordID, newTags).Return(nil)
+	tp.On("GetTags", recordID).Return(tags, nil)
+	tp.On("SaveFav", user, recordID).Return(nil)
+
+	tb := textbot.New(&tp)
+
+	// test
+	result, ok, err := tb.Execute(
+		channel,
+		nick,
+		fmt.Sprintf("!fav %s", msg),
+		user,
+	)
+	require.Nil(t, err)
+
+	// assertions
+	tp.AssertExpectations(t)
+	assert.True(t, ok)
+	assert.Equal(
+		t,
+		textbot.Result{
+			ID:          recordID,
+			MusicRecord: musicRecord,
+			Tags:        tags,
+			IsNew:       isNew,
+		},
+		result,
+	)
+}
+
+func TestExecucet_fav_noUser(t *testing.T) {
+	// setup
+	channel := "#channel"
+	msg := "!fav"
+	nick := "someNick"
+
+	tp := TestPlayBot{}
+
+	tb := textbot.New(&tp)
+	tp.On("GetLastID", types.Channel{Name: channel}, 0).Return(int64(42), nil)
+
+	// test
+	_, _, err := tb.Execute(
+		channel,
+		nick,
+		msg,
+		"",
+	)
+
+	// assertions
+	assert.ErrorIs(t, err, textbot.AuthenticationRequired)
+	tp.AssertExpectations(t)
+}
+
+func TestExecute_fav_noUser_musicRecord(t *testing.T) {
+	// setup
+	channel := "#channel"
+	recordID := int64(42)
+	newTags := []string{"tag1", "tag2"}
+	tags := []string{"tag1", "tag2", "tag3"}
+	// The given id "1" will be ignored.
+	msg := "1 https://someURL #tag1 #tag2"
+	nick := "someNick"
+	var musicRecord types.MusicRecord
+	_ = gofakeit.Struct(&musicRecord)
+	isNew := true
+
+	tp := TestPlayBot{}
+	tp.On(
+		"ParseAndSaveMusicRecord",
+		msg,
+		types.Person{Name: nick},
+		types.Channel{Name: channel},
+	).Return(recordID, musicRecord, isNew, nil)
+	tp.On("SaveTags", recordID, newTags).Return(nil)
+	tp.On("GetTags", recordID).Return(tags, nil)
+
+	tb := textbot.New(&tp)
+
+	// test
+	result, ok, err := tb.Execute(
+		channel,
+		nick,
+		fmt.Sprintf("!fav %s", msg),
+		"",
+	)
+
+	// assertions
+	tp.AssertExpectations(t)
+	assert.True(t, ok)
+	assert.Equal(
+		t,
+		textbot.Result{
+			ID:          recordID,
+			MusicRecord: musicRecord,
+			Tags:        tags,
+			IsNew:       isNew,
+		},
+		result,
+	)
+	assert.ErrorIs(t, err, textbot.AuthenticationRequired)
 }
 
 func TestExecute_saveTagsCmd_tagsWithoutHash(t *testing.T) {

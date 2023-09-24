@@ -709,12 +709,12 @@ func TestExecute_AuthenticationRequired_result(t *testing.T) {
 		&rpc.Result{
 			Msg: []*rpc.IrcMessage{
 				{
-					Msg: printResult,
-					To:  channelName,
-				},
-				{
 					Msg: "Ce nick n'est associé à aucun login arise. Va sur http://nightiies.iiens.net/links/fav pour obtenir ton code personel.",
 					To:  personName,
+				},
+				{
+					Msg: printResult,
+					To:  channelName,
 				},
 			},
 		},
