@@ -20,7 +20,15 @@ func (t *textBot) saveTagsCmd(
 		return err
 	}
 
-	tags := extractTags(args)
-	err = t.playbot.SaveTags(recordID, tags)
+	removeHash(args)
+	err = t.playbot.SaveTags(recordID, args)
 	return err
+}
+
+func removeHash(words []string) {
+	for idx, word := range words {
+		if word[0] == '#' {
+			words[idx] = word[1:]
+		}
+	}
 }

@@ -9,6 +9,7 @@
 package textbot
 
 import (
+	"context"
 	"log"
 	"regexp"
 	"strconv"
@@ -17,6 +18,18 @@ import (
 	"github.com/erdnaxeli/PlayBot/playbot"
 	"github.com/erdnaxeli/PlayBot/types"
 )
+
+type Playbot interface {
+	GetTags(recordID int64) ([]string, error)
+	GetLastID(types.Channel, int) (int64, error)
+	GetMusicRecord(int64) (types.MusicRecord, error)
+	GetMusicRecordStatistics(int64) (playbot.MusicRecordStatistics, error)
+	ParseAndSaveMusicRecord(string, types.Person, types.Channel) (int64, types.MusicRecord, bool, error)
+	SaveFav(string, int64) error
+	SaveMusicPost(int64, types.Channel, types.Person) error
+	SaveTags(int64, []string) error
+	SearchMusicRecord(context.Context, playbot.Search) (int64, playbot.SearchResult, error)
+}
 
 // Result represent the result of a command or the saved music record.
 type Result struct {
@@ -33,12 +46,12 @@ type Result struct {
 }
 
 type textBot struct {
-	playbot           *playbot.Playbot
+	playbot           Playbot
 	lastCommands      map[types.Channel][]string
 	lastCommandsMutex sync.RWMutex
 }
 
-func New(playbot *playbot.Playbot) *textBot {
+func New(playbot Playbot) *textBot {
 	return &textBot{
 		playbot:      playbot,
 		lastCommands: make(map[types.Channel][]string),
