@@ -15,7 +15,7 @@ import (
 func (t *textBot) favCmd(
 	channel types.Channel, person types.Person, args []string, user string,
 ) (Result, error) {
-	result, err := t.saveMusicPost(channel, person, strings.Join(args, " "))
+	result, recordID, err := t.saveFavPost(channel, person, args)
 	if err != nil {
 		return result, err
 	}
@@ -24,11 +24,32 @@ func (t *textBot) favCmd(
 		return result, AuthenticationRequired
 	}
 
-	recordID, _, err := t.getRecordIDFromArgs(channel, args)
-	if err != nil {
-		return result, err
-	}
-
 	err = t.playbot.SaveFav(user, recordID)
 	return result, err
+}
+
+func (t *textBot) saveFavPost(
+	channel types.Channel, person types.Person, args []string,
+) (Result, int64, error) {
+	var result Result
+	var recordID int64
+	var err error
+
+	if len(args) > 0 {
+		result, err = t.saveMusicPost(channel, person, strings.Join(args, " "))
+		if err != nil {
+			return result, 0, err
+		}
+
+		recordID = result.ID
+	}
+
+	if recordID == 0 {
+		recordID, _, err = t.getRecordIDFromArgs(channel, args)
+		if err != nil {
+			return Result{}, recordID, err
+		}
+	}
+
+	return result, recordID, nil
 }
