@@ -1,7 +1,9 @@
 package irc
 
-type Event int
-type Handler func(*Conn, Message) error
+type (
+	Event   int
+	Handler func(*Conn, Message) error
+)
 
 const (
 	// Dummy value that corresponds to the the zero value of the Event type.

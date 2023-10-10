@@ -34,8 +34,8 @@ func TestGetStatistics_ok(t *testing.T) {
 	r := getTestRepository(t)
 
 	// two records
-	var record1 = getMusicRecord()
-	var record2 = getMusicRecord()
+	record1 := getMusicRecord()
+	record2 := getMusicRecord()
 
 	// three people
 	var person1 types.Person

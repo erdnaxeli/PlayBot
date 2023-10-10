@@ -252,7 +252,6 @@ func TestSearchMusicRecord_all(t *testing.T) {
 			},
 		)
 	}
-
 }
 
 func TestSearchMusicRecord_noChannelNoWordsNoTags(t *testing.T) {

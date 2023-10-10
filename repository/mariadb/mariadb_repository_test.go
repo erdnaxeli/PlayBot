@@ -108,7 +108,6 @@ func TestInsertOrUpdateMusicRecord_Insert(t *testing.T) {
 	require.Nil(t, err)
 	assertEqualRecordRow(t, tx, record, recordId)
 	assert.True(t, isNew)
-
 }
 
 func TestInsertOrUpdateMusicRecord_Update(t *testing.T) {
@@ -228,7 +227,7 @@ func TestSaveChannelPost_ok(t *testing.T) {
 }
 
 func TestSaveChannelPost_RecordNotFound(t *testing.T) {
-	//setup
+	// setup
 	r := getTestRepository(t)
 	defer r.db.Close()
 	tx, _ := r.db.Begin()
