@@ -45,6 +45,7 @@ func (t *TestUserNickAssociationRepository) GetUserFromCode(code string) (string
 	args := t.Called(code)
 	return args.String(0), args.Error(1)
 }
+
 func (t *TestUserNickAssociationRepository) SaveAssociation(user string, nick string) error {
 	args := t.Called(user, nick)
 	return args.Error(0)
@@ -125,7 +126,6 @@ func TestExecute_noRecord_noCmd(t *testing.T) {
 	r.AssertExpectations(t)
 	mrp.AssertExpectations(t)
 	sp.AssertExpectations(t)
-
 }
 
 // Test the behavior when the record is not the result of a command, which means it is

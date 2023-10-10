@@ -220,7 +220,7 @@ func TestExecute_fav_musicRecord(t *testing.T) {
 	)
 }
 
-func TestExecucet_fav_noUser(t *testing.T) {
+func TestExecute_fav_noUser(t *testing.T) {
 	// setup
 	channel := "#channel"
 	msg := "!fav"

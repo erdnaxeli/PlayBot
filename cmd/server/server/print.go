@@ -22,7 +22,7 @@ type IrcMusicRecordPrinter struct{}
 func (IrcMusicRecordPrinter) Print(result textbot.Result) string {
 	var b strings.Builder
 
-	fmt.Fprint(&b, "🎉 ", YELLOW)
+	fmt.Fprint(&b, YELLOW)
 
 	if result.IsNew {
 		fmt.Fprint(&b, "[+", result.ID, "]")

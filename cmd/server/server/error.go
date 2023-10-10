@@ -24,7 +24,6 @@ func (s *server) handleError(msg *pb.TextMessage, result textbot.Result, err err
 				To:  msg.ChannelName,
 			})
 		}
-
 	} else if errors.Is(err, playbot.InvalidOffsetError) {
 		messages = append(messages, &pb.IrcMessage{
 			Msg: "Offset invalide.",
