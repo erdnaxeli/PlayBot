@@ -20,7 +20,7 @@ func NewBandcampExtractor(ldJsonExtractor ldjson.LdJsonExtractor) BandcampExtrac
 
 func (e BandcampExtractor) Match(url string) (string, string) {
 	re := regexp.MustCompile(
-		`(?:^|[^!])(https?://([a-z]+)\.bandcamp.com/track/([a-zA-Z0-9_-]+))`,
+		`(?:^|[^!])(https?://([a-z]+)\.bandcamp\.com/track/([a-zA-Z0-9_-]+))`,
 	)
 	groups := re.FindStringSubmatch(url)
 	if groups == nil {

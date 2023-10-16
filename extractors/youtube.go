@@ -16,7 +16,7 @@ type YoutubeExtractor struct {
 }
 
 func (*YoutubeExtractor) Match(url string) (string, string) {
-	re := regexp.MustCompile(`(?:^|[^!])https?://(?:(?:www|music).youtube.com/watch\?[a-zA-Z0-9_=&-]*v=|youtu.be/)([a-zA-Z0-9_-]+)`)
+	re := regexp.MustCompile(`(?:^|[^!])https?://(?:(?:www|music)\.youtube\.com/watch\?[a-zA-Z0-9_=&-]*v=|youtu.be/)([a-zA-Z0-9_-]+)`)
 	groups := re.FindStringSubmatch(url)
 	if groups == nil {
 		return "", ""
