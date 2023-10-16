@@ -9,7 +9,7 @@ require (
 	github.com/stretchr/testify v1.8.4
 	github.com/twitchtv/twirp v8.1.3+incompatible
 	golang.org/x/net v0.17.0
-	google.golang.org/api v0.145.0
+	google.golang.org/api v0.147.0
 	google.golang.org/protobuf v1.31.0
 )
 
@@ -32,7 +32,7 @@ require (
 	golang.org/x/sys v0.13.0 // indirect
 	golang.org/x/text v0.13.0 // indirect
 	google.golang.org/appengine v1.6.8 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20231002182017-d307bd883b97 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20231009173412-8bfb1ae86b6c // indirect
 	google.golang.org/grpc v1.58.2 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
