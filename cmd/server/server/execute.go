@@ -20,6 +20,10 @@ func (s *server) Execute(ctx context.Context, msg *pb.TextMessage) (*pb.Result, 
 		return s.handleUserAuth(msg)
 	} else if msg.PersonName == "NickServ" {
 		return s.handleUserAuthCallback(msg)
+	} else if msg.ChannelName == s.botNick {
+		// This is a private discussion. We set the channel name as the sender
+		// name.
+		msg.ChannelName = msg.PersonName
 	}
 
 	user, err := s.repository.GetUserFromNick(msg.PersonName)
