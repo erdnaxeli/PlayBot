@@ -3,6 +3,7 @@ package server
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/erdnaxeli/PlayBot/playbot"
 	"github.com/erdnaxeli/PlayBot/textbot"
@@ -59,15 +60,17 @@ func (IrcMusicRecordPrinter) Print(result textbot.Result) string {
 	return b.String()
 }
 
-type IrcStatisticsPrinter struct{}
+type IrcStatisticsPrinter struct {
+	Location *time.Location
+}
 
-func (IrcStatisticsPrinter) Print(statistics playbot.MusicRecordStatistics) string {
+func (s IrcStatisticsPrinter) Print(statistics playbot.MusicRecordStatistics) string {
 	var resultMsg strings.Builder
 	fmt.Fprintf(
 		&resultMsg,
 		"Posté la 1re fois par %s le %s sur %s.",
 		statistics.FirstPostPerson.Name,
-		statistics.FirstPostDate.Format("01-02-2006 15:04:05"),
+		statistics.FirstPostDate.In(s.Location).Format("02-01-2006 15:04:05"),
 		statistics.FirstPostChannel.Name,
 	)
 

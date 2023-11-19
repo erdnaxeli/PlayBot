@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"net/http"
+	"time"
 
 	pb "github.com/erdnaxeli/PlayBot/cmd/server/rpc"
 	"github.com/erdnaxeli/PlayBot/cmd/server/server"
@@ -39,13 +40,18 @@ func startServer() error {
 		return err
 	}
 
+	location, err := time.LoadLocation(config.Timezone)
+	if err != nil {
+		return err
+	}
+
 	bot := textbot.New(playbot.New(extractor, repository))
 	server := server.NewServer(
 		config.Irc.Nick,
 		bot,
 		repository,
 		server.IrcMusicRecordPrinter{},
-		server.IrcStatisticsPrinter{},
+		server.IrcStatisticsPrinter{Location: location},
 	)
 	handler := pb.NewPlaybotCliServer(server)
 
