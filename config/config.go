@@ -21,6 +21,7 @@ type Config struct {
 	DbHost        string    `json:"host"`
 	DbPassword    string    `json:"passwd"`
 	Irc           IrcConfig `json:"irc"`
+	Timezone      string    `json:"timezone"`
 }
 
 func ReadConfigFile(filename string) (Config, error) {
