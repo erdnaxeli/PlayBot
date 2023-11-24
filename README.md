@@ -1,16 +1,22 @@
 # PlayBot
 
-This is a rewrite of [this project](https://git.iiens.net/morignot2011/playbot.old), a Perl IRC bot.
+This is an IRC bot used to save music links posted. It currently supports:
+
+* Bandcamp
+* SoundCloud
+* YouTube
 
 ## The bot
 
 The bot is used to share music.
 You can post a link to a supported website and it will:
+
 * extract the music content
 * save it in a database
 * save any additional tags given with `#`
 
 You can then:
+
 * save a music into your favorites with `!fav`
 * search a music with `!get some query #with #tags` (or get a random music if called without search parameters)
 * get info about a music: when it was shared for the first time, by whom, how many times it was shared again
@@ -23,45 +29,90 @@ The second message from the bot is telling that it cannot find anything in the c
 A website also exists to go through a channel history or see your personal favorites.
 This part will need a complete rewrite and rethinking from scratch.
 
-## The rewrite
+## Commands
 
-The goal is to do a progressive roll out between the old Perl bot and the new golang bot.
-In order to do that, the Perl bot has been modified to execute the golang bot executable with the received message as parameter.
-If the process end with success the Perl bot uses the data returned.
-Else it uses its own extractors.
+### Post a track
 
-With that we can implement the extractors one by one in golang, and the Perl bot will automagically use them.
-The extractors currently implemented are:
-* SoundCloud and YouTube: the two websites mainly used by the bot users
-* Bandcamp: a new extractor not supported by the Perl bot (already a new feature, yay!)
+Whenever a link to a supported website is posted, it is saved for the current channel, with its information and the name of the poster in the channel and the current date.
 
-### Next steps
+Tags can be added in the same message to be saved to. They must start with the character `#`.
 
-A next step will be to implement the music save into the database.
-This will need to edit the Perl bot to not save the data when the golang process succeed.
-Note that this means saving the music data **and** any tags added by the user (so wit need to be able to get the tags from the input message).
+Examples:
 
-When this will be implemented it would be easier to iterate.
-The following step will be to implement the parsing of commands in the form `!somecommand`, and then to implement the main commands:
-* `!tag` to add tag to a previous music
-* `!get` to do a search
+* `listen to this track, so nice! https://www.youtube.com/watch?v=GGX110-07F8`: it will save the track without tags.
+* `some great #industrial #hardcore <3 https://soundcloud.com/angerfistmusic/deathmask-with-drokz-tripped-1`: it will save the track with the tags `#industrial` and `#hardcore`.
+* `this guy is having a good time :') !https://www.youtube.com/watch?v=EzmbT9cFJkk`: the link will be ignored.
 
-This will need to edit the Perl bot to execute the golang process earlier, before parsing any commands from the user input.
+To post a link **without** it to be saved, it must be prefixed with a character `!`.
 
-The `!fav` command will be more difficult to implement as it currently needs a process with private messages to verify the user authentication (against NickServ).
-And this feature implementation would probably need a rework if we drop IRC.
+### `!get [-a] [ID] [QUERY]`
 
-Because yes, the idea is to never implement IRC communication in the golang bot.
-Instead the first protocol to be implemented will be [[matrix]](https://matrix.org).
-As matrix supports bridges to other communication protocols, and especially IRC, the current users will not be dropped.
-Implementing other protocols like Slack or Discord could be an idea in the future if the demand is here.
+Get a track from the saved ones.
 
-And finally, once the bot is able to talk directly to the users, the Perl bot will not be needed anymore.
-We could then host the bot (and the database) elsewhere, then migrate the database from MariaDB to PostgreSQL.
-This will also implies to move the website somewhere else to, before rewriting it.
+`ID` is an optional track id.
+If provided, the corresponding track is returned, ignoring if it was posted on the current channel or not.
+Any given query is ignored.
+
+`QUERY` is an optional query.
+If not provided it returns a random music.
+The query can use words that will be matched agains the tracks authors and named, and tags.
+
+* `-a`: search in all the channel. If not provided, search only of the current channel.
+The query is optional, if not provided a random music posted in the channel is returned.
+
+Example:
+
+* `!get`: return a random track posted on the current channel.
+* `!get -a #hardcore death angerfirst`: return a random track posted on any channel, with the tag `#hardcore`, with the author or the name matching `death` and matching `angerfist`.
+
+### `!tag [ID] TAGS`
+
+Tag a track with the given tags.
+
+`ID` is optional. If not given, the last posted track is tagged.
+
+`TAGS` is a list of one or more tags, separated by spaces. Tags can start with `#`, or not.
+
+* `!tag #hardstyle`: tag the last posted track with the tag `#hardstyle`.
+* `!tag 2342 #liquid #dnb`: tag the tracks 2342 with the tags `#liquid` and `#dnb`.
+
+### `!fav [ID]`
+
+Save a track in your favorite tracks.
+
+`ID` is optional. If not given, the last posted track is saved to the favorites.
+
+### Referring a previous track
+
+Whenever a command is accepting an `ID` parameter, you can give it a relative id instead of an absolute one.
+The form is `-X`.
+`-1` refers to the before last track, `-2` to the before before last, etc, up to `-10`.
+
+Examples:
+
+* `!tag -1 #techno`: tag the before last track with the tag `#techno`.
+* `!fav -2`: save the before before last track to the user favorites.
 
 ## Hosting an instance of the bot
 
-As you can see, the following README is about the current rewrite and the current running instance, which you will probably never use (the IRC server it runs on is public but small).
+There is currently no binary provided.
+You need to clone the repository and build the project yourself.
 
-That's because my first goal for this project is to not break the current running bot for its users (which includes myself). When the rewrite will be done and the current instance swapped with this new implementation I will edit this README with instruction on how to host it.
+```shell
+$ make
+```
+
+It will build two executables: `server` and `ircclient`.
+
+The `ircclient` one is the client connecting to the IRC server.
+It sends the messages over HTTP (using protobuf) to the PayBot server.
+
+The `server` executable is the PlayBot server.
+It parses IRC messages received over HTTP and executes corresponding commands.
+The server runs on localhost on the port 1111, this is currently not configurable.
+
+Both executables need to have access to a configuration file named `playbot.conf`, in the folder where they are executed.
+You can find an example of the expected configuration in the file `example.conf`.
+
+Having such a client / server architecture allow to deploys a new version of the server without restarting the client, and thus without disconnecting the bot from IRC.
+Note however that if the server if offline, IRC messages received during this time will be discarded.
