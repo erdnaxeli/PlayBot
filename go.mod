@@ -3,7 +3,7 @@ module github.com/erdnaxeli/PlayBot
 go 1.21.0
 
 require (
-	github.com/brianvoe/gofakeit/v6 v6.26.3
+	github.com/brianvoe/gofakeit/v6 v6.26.4
 	github.com/go-sql-driver/mysql v1.7.1
 	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.8.4
