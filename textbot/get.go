@@ -125,7 +125,7 @@ func (t *textBot) getCmd(channel types.Channel, person types.Person, args []stri
 }
 
 func (t *textBot) getById(args []string) (int64, types.MusicRecord, error) {
-	if len(args) == 0 {
+	if len(args) != 1 {
 		return 0, types.MusicRecord{}, nil
 	}
 
