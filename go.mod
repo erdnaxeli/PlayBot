@@ -9,7 +9,7 @@ require (
 	github.com/stretchr/testify v1.8.4
 	github.com/twitchtv/twirp v8.1.3+incompatible
 	golang.org/x/net v0.21.0
-	google.golang.org/api v0.163.0
+	google.golang.org/api v0.165.0
 	google.golang.org/protobuf v1.32.0
 )
 
