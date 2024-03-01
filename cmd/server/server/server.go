@@ -17,6 +17,7 @@ var insults = [...]string{
 	"T'es mauvais, Jack !",
 }
 
+// Start of text char
 const STX = rune(2)
 
 var emptyResult = &pb.Result{}

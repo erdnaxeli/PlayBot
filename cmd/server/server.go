@@ -16,7 +16,7 @@ import (
 )
 
 func startServer() error {
-	config, err := config.ReadConfigFile("playbot.conf")
+	config, err := config.ReadConfig()
 	if err != nil {
 		return err
 	}
@@ -56,5 +56,5 @@ func startServer() error {
 	handler := pb.NewPlaybotCliServer(server)
 
 	log.Print("Starting the server")
-	return http.ListenAndServe("localhost:1111", handler)
+	return http.ListenAndServe(config.ServerAddress, handler)
 }

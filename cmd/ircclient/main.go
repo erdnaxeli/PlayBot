@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"net/http"
 
@@ -16,7 +17,8 @@ type bot struct {
 }
 
 func main() {
-	config, err := config.ReadConfigFile("playbot.conf")
+	fmt.Print("Starting IRC client...")
+	config, err := config.ReadConfig()
 	if err != nil {
 		log.Fatalf("Error while reading config file: %s", err)
 	}
@@ -32,7 +34,9 @@ func main() {
 		log.Fatal(err)
 	}
 
-	client := rpc.NewPlaybotCliProtobufClient("http://localhost:1111", &http.Client{})
+	client := rpc.NewPlaybotCliProtobufClient(
+		fmt.Sprintf("http://%s", config.ServerAddress), &http.Client{},
+	)
 	b := bot{client, config}
 
 	conn.OnConnect(b.onConnect)

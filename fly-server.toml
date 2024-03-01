@@ -1,0 +1,25 @@
+app = 'playbot-server'
+primary_region = 'cdg'
+
+[build]
+  build-target = 'pb-server'
+
+  [build.args]
+    GO_VERSION = '1.21.0'
+
+[env]
+  DB_HOST = 'playbot-mysql.internal'
+  DB_NAME = 'playbot'
+  DB_USER = 'playbot'
+  IRC_HOST = 'irc.iiens.net'
+  IRC_NICK = 'PlayBot'
+  IRC_CHANNELS = '#shittypoulpy #metaliiste toof #leagueoflegends #muzzik #bigphatsubwoofer #groop #fanfare #vitamine #dansiie #nightiies #elections #onsefaitchier #playbot'
+  SERVER_ADDR = '0.0.0.0:1111'
+  TIMEZONE = 'Europe/Paris'
+  
+
+[[vm]]
+  size = 'shared-cpu-1x'
+
+
+
