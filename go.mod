@@ -10,7 +10,7 @@ require (
 	github.com/twitchtv/twirp v8.1.3+incompatible
 	golang.org/x/net v0.22.0
 	google.golang.org/api v0.169.0
-	google.golang.org/protobuf v1.32.0
+	google.golang.org/protobuf v1.33.0
 )
 
 require (
