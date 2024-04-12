@@ -1,0 +1,21 @@
+app = 'playbot-mysql'
+primary_region = 'cdg'
+
+[build]
+  image = 'mariadb:10'
+
+[[vm]]
+  memory = '512mb'
+  cpu_kind = 'shared'
+  cpus = 1
+
+[processes]
+  app = "--datadir /data/mysql"
+
+[mounts]
+  source = 'playbot_mysql_data'
+  destination = '/data'
+
+[env]
+  MYSQL_DATABASE = 'playbot'
+  MYSQL_USER = 'playbot'

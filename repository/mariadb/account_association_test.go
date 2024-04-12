@@ -3,7 +3,7 @@ package mariadb
 import (
 	"testing"
 
-	"github.com/brianvoe/gofakeit/v6"
+	"github.com/brianvoe/gofakeit/v7"
 	"github.com/erdnaxeli/PlayBot/cmd/server/server"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
