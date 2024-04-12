@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/brianvoe/gofakeit/v6"
+	"github.com/brianvoe/gofakeit/v7"
 	"github.com/erdnaxeli/PlayBot/playbot"
 	"github.com/erdnaxeli/PlayBot/types"
 	"github.com/stretchr/testify/assert"

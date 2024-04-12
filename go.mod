@@ -1,9 +1,11 @@
 module github.com/erdnaxeli/PlayBot
 
-go 1.21.0
+go 1.22
+
+toolchain go1.22.2
 
 require (
-	github.com/brianvoe/gofakeit/v6 v6.28.0
+	github.com/brianvoe/gofakeit/v7 v7.0.2
 	github.com/go-sql-driver/mysql v1.8.1
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.18.2

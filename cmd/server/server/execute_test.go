@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/brianvoe/gofakeit/v6"
+	"github.com/brianvoe/gofakeit/v7"
 	"github.com/erdnaxeli/PlayBot/cmd/server/rpc"
 	"github.com/erdnaxeli/PlayBot/cmd/server/server"
 	"github.com/erdnaxeli/PlayBot/playbot"
