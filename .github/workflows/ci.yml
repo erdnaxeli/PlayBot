@@ -16,7 +16,7 @@ jobs:
       - name: generate RPC code
         run: make generate
       - name: golangci-lint
-        uses: golangci/golangci-lint-action@v4
+        uses: golangci/golangci-lint-action@v5
         with:
           version: latest
           skip-pkg-cache: true
