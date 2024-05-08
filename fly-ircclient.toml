@@ -14,13 +14,10 @@ primary_region = 'cdg'
   IRC_HOST = 'irc.iiens.net'
   IRC_PORT = '7000'
   IRC_NICK = 'PlayBot'
-  #IRC_CHANNELS = '#shittypoulpy #metaliiste toof #leagueoflegends #muzzik #bigphatsubwoofer #groop #fanfare #vitamine #dansiie #nightiies #elections #onsefaitchier #playbot'
+  IRC_CHANNELS = '#shittypoulpy #metaliiste #toof #leagueoflegends #muzzik #bigphatsubwoofer #groop #fanfare #vitamine #dansiie #nightiies #elections #onsefaitchier #playbot'
   SERVER_ADDR = 'playbot-server.internal:1111'
   TIMEZONE = 'Europe/Paris'
   
 
 [[vm]]
   size = 'shared-cpu-1x'
-
-
-
