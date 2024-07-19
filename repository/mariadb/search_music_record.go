@@ -46,8 +46,8 @@ func (r mariaDbRepository) SearchMusicRecord(
 		for rows.Next() {
 			var id int64
 			var title, url, source string
-			var recordID, sender sql.NullString
-			var duration sql.NullInt64
+			var recordID, sender sql.Null[string]
+			var duration sql.Null[int64]
 			err := rows.Scan(&id, &sender, &title, &url, &duration, &recordID, &source)
 			if err != nil {
 				log.Printf("Error while fetching rows after search: %s", err)
@@ -57,10 +57,10 @@ func (r mariaDbRepository) SearchMusicRecord(
 			searchResult := searchResult{
 				id,
 				types.MusicRecord{
-					Band:     types.Band{Name: sender.String},
-					Duration: time.Duration(duration.Int64 * int64(time.Second)),
+					Band:     types.Band{Name: sender.V},
+					Duration: time.Duration(duration.V * int64(time.Second)),
 					Name:     title,
-					RecordId: recordID.String,
+					RecordId: recordID.V,
 					Source:   source,
 					Url:      url,
 				},

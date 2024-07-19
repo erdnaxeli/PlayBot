@@ -35,6 +35,10 @@ func New(user string, password string, host string, dbname string) (mariaDbRepos
 		return mariaDbRepository{}, err
 	}
 
+	return NewFromDB(db)
+}
+
+func NewFromDB(db *sql.DB) (mariaDbRepository, error) {
 	if err := db.Ping(); err != nil {
 		return mariaDbRepository{}, err
 	}

@@ -34,7 +34,7 @@ func assertEqualRecordRow(t *testing.T, tx *sql.Tx, record types.MusicRecord, ro
 		rowId,
 	)
 	var type_, url, title string
-	var senderIrc, sender, file, channel, externalId sql.NullString
+	var senderIrc, sender, file, channel, externalId sql.Null[string]
 	var duration, broken, playlist int
 	err := row.Scan(&type_, &url, &senderIrc, &sender, &title, &duration, &file, &broken, &channel, &playlist, &externalId)
 	require.Nil(t, err)
@@ -42,7 +42,7 @@ func assertEqualRecordRow(t *testing.T, tx *sql.Tx, record types.MusicRecord, ro
 	assert.Equal(t, record.Url, url)
 	assert.False(t, senderIrc.Valid)
 	assert.True(t, sender.Valid)
-	assert.Equal(t, record.Band.Name, sender.String)
+	assert.Equal(t, record.Band.Name, sender.V)
 	assert.Equal(t, record.Name, title)
 	assert.Equal(t, int(record.Duration.Seconds()), duration)
 	assert.False(t, file.Valid)
@@ -50,7 +50,7 @@ func assertEqualRecordRow(t *testing.T, tx *sql.Tx, record types.MusicRecord, ro
 	assert.False(t, channel.Valid)
 	assert.Equal(t, 0, playlist)
 	assert.True(t, externalId.Valid)
-	assert.Equal(t, record.RecordId, externalId.String)
+	assert.Equal(t, record.RecordId, externalId.V)
 }
 
 func getTestRepository(t *testing.T) mariaDbRepository {
@@ -236,9 +236,10 @@ func TestSaveChannelPost_RecordNotFound(t *testing.T) {
 	var channel types.Channel
 	_ = gofakeit.Struct(&person)
 	_ = gofakeit.Struct(&channel)
+	recordID := gofakeit.Int64()
 
 	// test
-	err := r.saveChannelPost(tx, 42, person, channel)
+	err := r.saveChannelPost(tx, recordID, person, channel)
 
 	// assertions
 	assert.NotNil(t, err)
@@ -251,7 +252,7 @@ func TestSaveChannelPost_RecordNotFound(t *testing.T) {
 			where
 				content = ?
 		`,
-		42,
+		recordID,
 	)
 	var senderIrc, channelName string
 	err = row.Scan(&senderIrc, &channelName)

@@ -19,7 +19,7 @@ type Search struct {
 
 // Search for a music record.
 //
-// The first time a search is done in a channel, its parameters and context will be
+// The first time a search is done in a channel, its parameters and context are
 // saved. When doing another search in the same channel, if the parameters are the
 // same as the previous ones, it returns the next result for the previous search.
 // If the parameters are different from the previous ones, the previous search is
@@ -30,11 +30,11 @@ type Search struct {
 // must look at the count returned value. If it is zero it means there is no result,
 // else it means all results have been consumed.
 //
-// searchCtx is the context used for the whole search. If the search is consumed again,
-// the initial searchCtx given when starting the search will be used and the current one
+// search.Ctx is the context used for the whole search. If the search is consumed again,
+// the initial search.Ctx given when starting the search will be used and the current one
 // will be ignored. If this context is canceled, the whole search is discarded and a new
 // one is started.
-// resultCtx is the context used to return the result. If the context is canceled no
+// ctx is the context used to return the result. If the context is canceled no
 // result is returned, but the search is kept and can be consumed again.
 func (p *Playbot) SearchMusicRecord(
 	ctx context.Context,

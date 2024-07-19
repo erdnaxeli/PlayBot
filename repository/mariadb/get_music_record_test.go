@@ -36,3 +36,49 @@ func TestGetMusicRecord_ok(t *testing.T) {
 
 	assert.Equal(t, records[4], result)
 }
+
+func TestGetMusicRecord_nullableColumns(t *testing.T) {
+	// setup
+
+	r, db := getTestRepositoryAndDB(t)
+
+	// create a post with nullable columns set to null
+	post := getMusicPost()
+	result, err := db.Exec(
+		`
+			insert into playbot (
+				type,
+				url,
+				sender,
+				title,
+				duration,
+				external_id
+			)
+			values (
+				?,
+				?,
+				null,
+				?,
+				?,
+				null
+			)
+		`,
+		post.MusicRecord.Source,
+		post.MusicRecord.Url,
+		post.MusicRecord.Name,
+		int(post.MusicRecord.Duration.Seconds()),
+	)
+	require.Nil(t, err)
+	recordID, err := result.LastInsertId()
+	require.Nil(t, err)
+
+	// test
+
+	record, err := r.GetMusicRecord(recordID)
+	require.Nil(t, err)
+
+	// assertions
+
+	assert.Equal(t, "", record.Band.Name)
+	assert.Equal(t, "", record.RecordId)
+}

@@ -25,8 +25,8 @@ func (r mariaDbRepository) GetMusicRecord(musicRecordId int64) (types.MusicRecor
 	)
 
 	var title, url, source string
-	var recordID, sender sql.NullString
-	var duration sql.NullInt64
+	var recordID, sender sql.Null[string]
+	var duration sql.Null[int64]
 	err := row.Scan(&sender, &title, &url, &duration, &recordID, &source)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -37,10 +37,10 @@ func (r mariaDbRepository) GetMusicRecord(musicRecordId int64) (types.MusicRecor
 	}
 
 	record := types.MusicRecord{
-		Band:     types.Band{Name: sender.String},
-		Duration: time.Duration(duration.Int64 * int64(time.Second)),
+		Band:     types.Band{Name: sender.V},
+		Duration: time.Duration(duration.V * int64(time.Second)),
 		Name:     title,
-		RecordId: recordID.String,
+		RecordId: recordID.V,
 		Source:   source,
 		Url:      url,
 	}
