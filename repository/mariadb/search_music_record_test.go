@@ -2,6 +2,8 @@ package mariadb_test
 
 import (
 	"context"
+	"database/sql"
+	"fmt"
 	"sort"
 	"testing"
 	"time"
@@ -39,6 +41,22 @@ func getTestRepository(t *testing.T) playbot.Repository {
 		"A MariaDB server must be listening on localhost with a user 'test', a password 'test' and a database 'test' initialized with the test-db.sql file.",
 	)
 	return r
+}
+
+func getTestRepositoryAndDB(t *testing.T) (playbot.Repository, *sql.DB) {
+	dsn := fmt.Sprintf(
+		"%s:%s@(%s)/%s?parseTime=true&loc=Europe%%2FParis",
+		"test", "test", "localhost", "test",
+	)
+	db, err := sql.Open("mysql", dsn)
+	require.Nil(
+		t,
+		err,
+		"A MariaDB server must be listening on localhost with a user 'test', a password 'test' and a database 'test' initialized with the test-db.sql file.",
+	)
+	r, err := mariadb.NewFromDB(db)
+	require.Nil(t, err)
+	return r, db
 }
 
 func getMusicPost() types.MusicPost {
@@ -439,4 +457,78 @@ func TestSearchMusicRecord_contextDone(t *testing.T) {
 	// get another result
 	_, ok = <-ch
 	assert.False(t, ok)
+}
+
+func TestSearchMusicRecord_nullableColumns(t *testing.T) {
+	// setup
+
+	r, db := getTestRepositoryAndDB(t)
+
+	// create a post with nullable columns set to null
+	post := getMusicPost()
+	result, err := db.Exec(
+		`
+			insert into playbot (
+				type,
+				url,
+				sender,
+				title,
+				duration,
+				external_id
+			)
+			values (
+				?,
+				?,
+				null,
+				?,
+				?,
+				null
+			)
+		`,
+		post.MusicRecord.Source,
+		post.MusicRecord.Url,
+		post.MusicRecord.Name,
+		int(post.MusicRecord.Duration.Seconds()),
+	)
+	require.Nil(t, err)
+	recordID, err := result.LastInsertId()
+	require.Nil(t, err)
+
+	_, err = db.Exec(
+		`
+			insert into playbot_chan (
+				sender_irc,
+				content,
+				chan
+			)
+			values (
+				?, ?, ?
+			)
+		`,
+		post.Person.Name, recordID, post.Channel.Name,
+	)
+	require.Nil(t, err)
+
+	// test
+
+	count, ch, err := r.SearchMusicRecord(
+		context.Background(),
+		post.Channel,
+		[]string{},
+		[]string{},
+	)
+	require.Nil(t, err)
+	require.EqualValues(t, 1, count)
+
+	// get all results
+	var results []playbot.SearchResult
+	for r := range ch {
+		results = append(results, r)
+	}
+
+	// assertions
+
+	assert.Len(t, results, 1)
+	assert.Equal(t, "", results[0].MusicRecord().Band.Name)
+	assert.Equal(t, "", results[0].MusicRecord().RecordId)
 }
