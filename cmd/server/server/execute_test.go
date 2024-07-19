@@ -3,7 +3,7 @@ package server_test
 import (
 	"context"
 	"fmt"
-	"math/rand"
+	"math/rand/v2"
 	"testing"
 	"time"
 
@@ -72,9 +72,9 @@ func (t *TestStatsPrinter) Print(stats playbot.MusicRecordStatistics) string {
 func getResult() textbot.Result {
 	var record types.MusicRecord
 	_ = gofakeit.Struct(&record)
-	record.Duration = time.Second * time.Duration(rand.Int63n(300))
+	record.Duration = time.Second * time.Duration(rand.Int64N(300))
 
-	tags := make([]string, rand.Intn(10))
+	tags := make([]string, rand.IntN(10))
 	gofakeit.Slice(&tags)
 
 	return textbot.Result{
@@ -141,8 +141,8 @@ func TestExecute_record_noCmd(t *testing.T) {
 	user := gofakeit.Name()
 	var record types.MusicRecord
 	_ = gofakeit.Struct(&record)
-	record.Duration = time.Second * time.Duration(rand.Int63n(300))
-	tags := make([]string, rand.Intn(10))
+	record.Duration = time.Second * time.Duration(rand.Int64N(300))
+	tags := make([]string, rand.IntN(10))
 	gofakeit.Slice(&tags)
 	execResult := textbot.Result{
 		ID:          gofakeit.Int64(),

@@ -2,7 +2,7 @@ package server
 
 import (
 	"errors"
-	"math/rand"
+	"math/rand/v2"
 
 	pb "github.com/erdnaxeli/PlayBot/cmd/server/rpc"
 	"github.com/erdnaxeli/PlayBot/playbot"
@@ -36,7 +36,7 @@ func (s *server) handleError(msg *pb.TextMessage, result textbot.Result, err err
 		})
 	} else if errors.Is(err, textbot.InvalidUsageError) {
 		messages = append(messages, &pb.IrcMessage{
-			Msg: insults[rand.Intn(len(insults))],
+			Msg: insults[rand.IntN(len(insults))],
 			To:  msg.ChannelName,
 		})
 	} else if errors.Is(err, textbot.AuthenticationRequired) {
