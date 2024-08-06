@@ -15,6 +15,7 @@ type Search struct {
 	GlobalSearch bool
 	Words        []string
 	Tags         []string
+	ExcludedTags []string
 }
 
 // Search for a music record.
