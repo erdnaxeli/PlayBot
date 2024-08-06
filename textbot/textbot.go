@@ -85,7 +85,7 @@ func (t *textBot) Execute(
 	}
 
 	var result Result
-	ok := true
+	isCmd := true
 	var err error
 
 	switch cmd {
@@ -107,14 +107,14 @@ func (t *textBot) Execute(
 		err = t.saveTagsCmd(channel, person, cmdArgs)
 	default:
 		result, err = t.saveMusicPost(channel, person, msg)
-		ok = false
+		isCmd = false
 	}
 
-	if ok {
+	if isCmd {
 		t.saveLastCommand(channel, args)
 	}
 
-	return result, ok, err
+	return result, isCmd, err
 }
 
 func (t *textBot) getLastCommand(channel types.Channel) ([]string, bool) {
