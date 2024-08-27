@@ -44,7 +44,7 @@ func New(config Config) (*Conn, error) {
 
 func (i *Conn) sendRaw(msg string) error {
 	time.Sleep(time.Until(i.throttleDeadline))
-	err := i.writer.PrintfLine(msg)
+	err := i.writer.PrintfLine("%s", msg)
 	i.throttleDeadline = time.Now().Add(500 * time.Millisecond)
 
 	if err != nil {
