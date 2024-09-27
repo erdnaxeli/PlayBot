@@ -52,7 +52,7 @@ func (t *textBot) getCmd(channel types.Channel, person types.Person, args []stri
 		var excludedTags []string
 
 		for _, arg := range flagSet.Args() {
-			if strings.HasPrefix(arg, "-#") {
+			if strings.HasPrefix(arg, "##") {
 				excludedTags = append(excludedTags, arg[2:])
 			} else if strings.HasPrefix(arg, "#") {
 				tags = append(tags, arg[1:])

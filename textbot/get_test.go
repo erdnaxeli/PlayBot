@@ -4,17 +4,18 @@ import (
 	"context"
 	"testing"
 
-	"github.com/alecthomas/assert/v2"
 	"github.com/erdnaxeli/PlayBot/playbot"
 	"github.com/erdnaxeli/PlayBot/textbot"
 	"github.com/erdnaxeli/PlayBot/types"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
-	"github.com/zeebo/assert"
 )
 
 type PlaybotMock struct {
 	mock.Mock
+	// Stores the calls to SearchMusicRecord. We ignore the first ctx argument.
+	searchMusicRecordCalls []playbot.Search
 }
 
 func (m *PlaybotMock) GetTags(recordID int64) ([]string, error) {
@@ -58,8 +59,12 @@ func (m *PlaybotMock) SaveTags(recordID int64, tags []string) error {
 }
 
 func (m *PlaybotMock) SearchMusicRecord(ctx context.Context, search playbot.Search) (int64, playbot.SearchResult, error) {
-	args := m.Called(ctx, search)
-	return args.Get(0).(int64), args.Get(1).(playbot.SearchResult), args.Error(2)
+	// search contains a context object, so we can check if it is the same as the one we expect
+	m.searchMusicRecordCalls = append(m.searchMusicRecordCalls, search)
+	return 42, SearchResult{
+		id:          42,
+		musicRecord: types.MusicRecord{Name: "Some music record"},
+	}, nil
 }
 
 type SearchResult struct {
@@ -83,6 +88,7 @@ func TestGet(t *testing.T) {
 		tags         []string
 		excludedTags []string
 		words        []string
+		searchById   bool
 	}{
 		{
 			msg:          "!get",
@@ -91,6 +97,7 @@ func TestGet(t *testing.T) {
 			tags:         nil,
 			excludedTags: nil,
 			words:        nil,
+			searchById:   false,
 		},
 		{
 			msg:          "!get -a",
@@ -99,6 +106,7 @@ func TestGet(t *testing.T) {
 			tags:         nil,
 			excludedTags: nil,
 			words:        nil,
+			searchById:   false,
 		},
 		{
 			msg:          "!get -a some thing #else",
@@ -107,14 +115,16 @@ func TestGet(t *testing.T) {
 			tags:         []string{"else"},
 			excludedTags: nil,
 			words:        []string{"some", "thing"},
+			searchById:   false,
 		},
 		{
-			msg:          "!get some thing #else -#excluded",
+			msg:          "!get some thing #else ##excluded",
 			id:           0,
 			all:          false,
 			tags:         []string{"else"},
 			excludedTags: []string{"excluded"},
 			words:        []string{"some", "thing"},
+			searchById:   false,
 		},
 		{
 			msg:          "!get 42",
@@ -123,14 +133,16 @@ func TestGet(t *testing.T) {
 			tags:         nil,
 			excludedTags: nil,
 			words:        nil,
+			searchById:   true,
 		},
 		{
-			msg:          "!get 42 some thing #else -#excluded",
+			msg:          "!get 42 some thing #else ##excluded",
 			id:           42,
 			all:          false,
 			tags:         nil,
 			excludedTags: nil,
 			words:        nil,
+			searchById:   false,
 		},
 	}
 
@@ -139,33 +151,18 @@ func TestGet(t *testing.T) {
 			test.msg,
 			func(t *testing.T) {
 				// Given
+				var recordId int64 = 42
 				playbotMock := &PlaybotMock{}
-				textBot := textbot.New(playbotMock)
+				playbotMock.On("GetTags", recordId).Return([]string{"tag1", "tag2"}, nil)
+				playbotMock.On("SaveMusicPost", recordId, types.Channel{Name: "channel"}, types.Person{Name: "PlayBot"}).Return(nil)
 
-				if test.id != 0 {
+				if test.searchById {
 					playbotMock.On("GetMusicRecord", test.id).Return(
-						types.MusicRecord{Name: "Some music record"}, nil,
-					)
-				} else {
-					playbotMock.On(
-						"SearchMusicRecord",
-						mock.Anything,
-						playbot.Search{
-							Ctx:          context.TODO(),
-							Channel:      types.Channel{Name: "channel"},
-							GlobalSearch: test.all,
-							Words:        test.words,
-							Tags:         test.tags,
-							ExcludedTags: test.excludedTags,
-						},
-					).Return(
-						1_64,
-						SearchResult{
-							id:          42,
-							musicRecord: types.MusicRecord{Name: "Some music record"},
-						}, nil,
+						types.MusicRecord{Name: "Some music record", RecordId: "42"}, nil,
 					)
 				}
+
+				textBot := textbot.New(playbotMock)
 
 				// When
 				_, isCmd, err := textBot.Execute("channel", "george", test.msg, "")
@@ -174,6 +171,16 @@ func TestGet(t *testing.T) {
 				// Then
 				assert.True(t, isCmd)
 				playbotMock.AssertExpectations(t)
+
+				if test.id == 0 {
+					assert.Len(t, playbotMock.searchMusicRecordCalls, 1)
+					search := playbotMock.searchMusicRecordCalls[0]
+					assert.Equal(t, types.Channel{Name: "channel"}, search.Channel)
+					assert.Equal(t, test.all, search.GlobalSearch)
+					assert.Equal(t, test.words, search.Words)
+					assert.Equal(t, test.tags, search.Tags)
+					assert.Equal(t, test.excludedTags, search.ExcludedTags)
+				}
 			},
 		)
 	}

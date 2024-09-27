@@ -10,11 +10,24 @@ import (
 )
 
 type Search struct {
-	Ctx          context.Context
-	Channel      types.Channel
+	// Context used for the search. If the same search is execute again, the same
+	// context will be used. If this context is canceled, the search is discarded
+	// and a new one is started.
+	Ctx context.Context
+
+	// Channel where the search is done.
+	Channel types.Channel
+
+	// If true, the search is done globally, else it is done in the channel.
 	GlobalSearch bool
-	Words        []string
-	Tags         []string
+
+	// Words to do a text based search.
+	Words []string
+
+	// Exact tags to search for.
+	Tags []string
+
+	// Tags to exclude from the search.
 	ExcludedTags []string
 }
 
