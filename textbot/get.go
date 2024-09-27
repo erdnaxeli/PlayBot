@@ -49,8 +49,12 @@ func (t *textBot) getCmd(channel types.Channel, person types.Person, args []stri
 	} else if recordID == 0 {
 		var words []string
 		var tags []string
+		var excludedTags []string
+
 		for _, arg := range flagSet.Args() {
-			if strings.HasPrefix(arg, "#") {
+			if strings.HasPrefix(arg, "##") {
+				excludedTags = append(excludedTags, arg[2:])
+			} else if strings.HasPrefix(arg, "#") {
 				tags = append(tags, arg[1:])
 			} else {
 				words = append(words, arg)
@@ -72,6 +76,7 @@ func (t *textBot) getCmd(channel types.Channel, person types.Person, args []stri
 				GlobalSearch: all,
 				Words:        words,
 				Tags:         tags,
+				ExcludedTags: excludedTags,
 			},
 		)
 		if err != nil {
