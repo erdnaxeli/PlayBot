@@ -12,12 +12,12 @@ require (
 	github.com/stretchr/testify v1.9.0
 	github.com/twitchtv/twirp v8.1.3+incompatible
 	golang.org/x/net v0.30.0
-	google.golang.org/api v0.204.0
+	google.golang.org/api v0.205.0
 	google.golang.org/protobuf v1.35.1
 )
 
 require (
-	cloud.google.com/go/auth v0.10.0 // indirect
+	cloud.google.com/go/auth v0.10.1 // indirect
 	cloud.google.com/go/auth/oauth2adapt v0.2.5 // indirect
 	cloud.google.com/go/compute/metadata v0.5.2 // indirect
 	filippo.io/edwards25519 v1.1.0 // indirect
