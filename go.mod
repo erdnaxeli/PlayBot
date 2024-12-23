@@ -11,7 +11,7 @@ require (
 	github.com/spf13/viper v1.19.0
 	github.com/stretchr/testify v1.10.0
 	github.com/twitchtv/twirp v8.1.3+incompatible
-	golang.org/x/net v0.32.0
+	golang.org/x/net v0.33.0
 	google.golang.org/api v0.211.0
 	google.golang.org/protobuf v1.35.2
 )
