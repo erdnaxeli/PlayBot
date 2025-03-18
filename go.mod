@@ -1,8 +1,7 @@
 module github.com/erdnaxeli/PlayBot
 
 go 1.22.0
-
-toolchain go1.23.1
+toolchain go1.24.1
 
 require (
 	github.com/brianvoe/gofakeit/v7 v7.2.1
@@ -11,7 +10,7 @@ require (
 	github.com/spf13/viper v1.20.0
 	github.com/stretchr/testify v1.10.0
 	github.com/twitchtv/twirp v8.1.3+incompatible
-	golang.org/x/net v0.35.0
+	golang.org/x/net v0.37.0
 	google.golang.org/api v0.218.0
 	google.golang.org/protobuf v1.36.5
 )
@@ -45,10 +44,10 @@ require (
 	go.opentelemetry.io/otel/metric v1.31.0 // indirect
 	go.opentelemetry.io/otel/trace v1.31.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
-	golang.org/x/crypto v0.33.0 // indirect
+	golang.org/x/crypto v0.36.0 // indirect
 	golang.org/x/oauth2 v0.25.0 // indirect
-	golang.org/x/sys v0.30.0 // indirect
-	golang.org/x/text v0.22.0 // indirect
+	golang.org/x/sys v0.31.0 // indirect
+	golang.org/x/text v0.23.0 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20250115164207-1a7da9e5054f // indirect
 	google.golang.org/grpc v1.69.4 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
