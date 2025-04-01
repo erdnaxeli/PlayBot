@@ -5,7 +5,7 @@ require (
 	github.com/brianvoe/gofakeit/v7 v7.2.1
 	github.com/go-sql-driver/mysql v1.9.1
 	github.com/spf13/pflag v1.0.6
-	github.com/spf13/viper v1.20.0
+	github.com/spf13/viper v1.20.1
 	github.com/stretchr/testify v1.10.0
 	github.com/twitchtv/twirp v8.1.3+incompatible
 	golang.org/x/net v0.35.0
