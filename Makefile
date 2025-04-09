@@ -11,8 +11,9 @@ build-ircclient:
 build: build-ircclient build-server
 
 generate:
-	go generate ./...
-
+	go install google.golang.org/protobuf/cmd/protoc-gen-go
+	go install github.com/twitchtv/twirp/protoc-gen-twirp
+	protoc --twirp_out=module=github.com/erdnaxeli/playbot/cmd/cli:cmd/server/ --go_out=module=github.com/erdnaxeli/playbot/cmd/cli:cmd/server/ cmd/server/service.proto
 
 style:
 	go fmt ./...
