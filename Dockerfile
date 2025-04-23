@@ -6,7 +6,7 @@ RUN apk add --no-cache protoc
 COPY go.mod go.sum ./
 RUN go mod download && go mod verify
 COPY . .
-RUN go generate ./...
+RUN make generate
 RUN CGO_ENABLED=0 go build -v -o /pb-ircclient ./cmd/ircclient
 RUN CGO_ENABLED=0 go build -v -o /pb-server ./cmd/server
 
