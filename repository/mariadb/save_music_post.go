@@ -54,11 +54,11 @@ func (mariaDbRepository) insertOrUpdateMusicRecord(tx *sql.Tx, record types.Musi
 				external_id = value(external_id)
 		`,
 		record.Source,
-		record.Url,
+		record.URL,
 		record.Band.Name,
 		record.Name,
 		int(record.Duration.Seconds()),
-		record.RecordId,
+		record.RecordID,
 	)
 	if err != nil {
 		return 0, false, err

@@ -38,8 +38,8 @@ func (IrcMusicRecordPrinter) Print(result textbot.Result) string {
 	}
 
 	fmt.Fprint(&b, " ", LIGHT_BLUE, result.Duration.String())
-	if result.Url != "" {
-		fmt.Fprint(&b, NORMAL, " => ", result.Url)
+	if result.URL != "" {
+		fmt.Fprint(&b, NORMAL, " => ", result.URL)
 	}
 
 	var tags []string

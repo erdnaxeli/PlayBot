@@ -58,7 +58,7 @@ func (m *PlaybotMock) SaveTags(recordID int64, tags []string) error {
 	return args.Error(0)
 }
 
-func (m *PlaybotMock) SearchMusicRecord(ctx context.Context, search playbot.Search) (int64, playbot.SearchResult, error) {
+func (m *PlaybotMock) SearchMusicRecord(_ context.Context, search playbot.Search) (int64, playbot.SearchResult, error) {
 	// search contains a context object, so we can check if it is the same as the one we expect
 	m.searchMusicRecordCalls = append(m.searchMusicRecordCalls, search)
 	return 42, SearchResult{
@@ -72,7 +72,7 @@ type SearchResult struct {
 	musicRecord types.MusicRecord
 }
 
-func (s SearchResult) Id() int64 {
+func (s SearchResult) ID() int64 {
 	return s.id
 }
 
@@ -88,7 +88,7 @@ func TestGet(t *testing.T) {
 		tags         []string
 		excludedTags []string
 		words        []string
-		searchById   bool
+		searchByID   bool
 	}{
 		{
 			msg:          "!get",
@@ -97,7 +97,7 @@ func TestGet(t *testing.T) {
 			tags:         nil,
 			excludedTags: nil,
 			words:        nil,
-			searchById:   false,
+			searchByID:   false,
 		},
 		{
 			msg:          "!get -a",
@@ -106,7 +106,7 @@ func TestGet(t *testing.T) {
 			tags:         nil,
 			excludedTags: nil,
 			words:        nil,
-			searchById:   false,
+			searchByID:   false,
 		},
 		{
 			msg:          "!get -a some thing #else",
@@ -115,7 +115,7 @@ func TestGet(t *testing.T) {
 			tags:         []string{"else"},
 			excludedTags: nil,
 			words:        []string{"some", "thing"},
-			searchById:   false,
+			searchByID:   false,
 		},
 		{
 			msg:          "!get some thing #else ##excluded",
@@ -124,7 +124,7 @@ func TestGet(t *testing.T) {
 			tags:         []string{"else"},
 			excludedTags: []string{"excluded"},
 			words:        []string{"some", "thing"},
-			searchById:   false,
+			searchByID:   false,
 		},
 		{
 			msg:          "!get 42",
@@ -133,7 +133,7 @@ func TestGet(t *testing.T) {
 			tags:         nil,
 			excludedTags: nil,
 			words:        nil,
-			searchById:   true,
+			searchByID:   true,
 		},
 		{
 			msg:          "!get 42 some thing #else ##excluded",
@@ -142,7 +142,7 @@ func TestGet(t *testing.T) {
 			tags:         nil,
 			excludedTags: nil,
 			words:        nil,
-			searchById:   false,
+			searchByID:   false,
 		},
 	}
 
@@ -151,14 +151,14 @@ func TestGet(t *testing.T) {
 			test.msg,
 			func(t *testing.T) {
 				// Given
-				var recordId int64 = 42
+				var recordID int64 = 42
 				playbotMock := &PlaybotMock{}
-				playbotMock.On("GetTags", recordId).Return([]string{"tag1", "tag2"}, nil)
-				playbotMock.On("SaveMusicPost", recordId, types.Channel{Name: "channel"}, types.Person{Name: "PlayBot"}).Return(nil)
+				playbotMock.On("GetTags", recordID).Return([]string{"tag1", "tag2"}, nil)
+				playbotMock.On("SaveMusicPost", recordID, types.Channel{Name: "channel"}, types.Person{Name: "PlayBot"}).Return(nil)
 
-				if test.searchById {
+				if test.searchByID {
 					playbotMock.On("GetMusicRecord", test.id).Return(
-						types.MusicRecord{Name: "Some music record", RecordId: "42"}, nil,
+						types.MusicRecord{Name: "Some music record", RecordID: "42"}, nil,
 					)
 				}
 

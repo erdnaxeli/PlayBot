@@ -41,9 +41,9 @@ func (t *textBot) saveMusicPost(
 	return result, nil
 }
 
-func (t *textBot) saveTags(msg string, recordId int64) error {
+func (t *textBot) saveTags(msg string, recordID int64) error {
 	tags := extractTagsFromMsg(msg)
-	err := t.playbot.SaveTags(recordId, tags)
+	err := t.playbot.SaveTags(recordID, tags)
 	return err
 }
 

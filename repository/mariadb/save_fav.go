@@ -25,12 +25,11 @@ func (r mariaDbRepository) SaveFav(user string, recordID int64) error {
 	if err != nil {
 		mysqlErr := &mysql.MySQLError{}
 		if errors.As(err, &mysqlErr) {
-			if mysqlErr.Number == _ER_DUP_ENTRY {
+			switch mysqlErr.Number {
+			case _ER_DUP_ENTRY:
 				return nil
-			} else if mysqlErr.Number == _ER_NO_REFERENCED_ROW ||
-				mysqlErr.Number == _ER_NO_REFERENCED_ROW_2 {
-
-				return playbot.NoRecordFoundError
+			case _ER_NO_REFERENCED_ROW, _ER_NO_REFERENCED_ROW_2:
+				return playbot.ErrNoRecordFound
 			}
 		}
 

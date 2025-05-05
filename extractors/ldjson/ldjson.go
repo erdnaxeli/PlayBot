@@ -60,8 +60,8 @@ func (e ldJsonExtractor) Extract(url string) (types.MusicRecord, error) {
 		Band:     types.Band{Name: band},
 		Duration: duration,
 		Name:     record.Name,
-		RecordId: record.Id,
-		Url:      recordUrl,
+		RecordID: record.Id,
+		URL:      recordUrl,
 	}, nil
 }
 
@@ -83,7 +83,7 @@ func (e ldJsonExtractor) getMusicRecord(url string) MusicRecording {
 			}
 		}
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode != http.StatusOK {
 		log.Fatal("Received an HTTP error: ", resp.Status)

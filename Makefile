@@ -17,7 +17,7 @@ generate:
 
 style:
 	go fmt ./...
-	go run github.com/golangci/golangci-lint/cmd/golangci-lint@v1 run
+	go run github.com/golangci/golangci-lint/v2/cmd/golangci-lint@latest run
 
 test:
 	go test ./...

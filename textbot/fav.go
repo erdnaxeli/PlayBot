@@ -21,7 +21,7 @@ func (t *textBot) favCmd(
 	}
 
 	if user == "" {
-		return result, AuthenticationRequired
+		return result, ErrAuthenticationRequired
 	}
 
 	err = t.playbot.SaveFav(user, recordID)

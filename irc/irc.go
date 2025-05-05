@@ -8,12 +8,16 @@ import (
 	"time"
 )
 
+// Config is the configuration to connect to an IRC server.
 type Config struct {
 	Host string
 	Port int
 	Nick string
 }
 
+// Conn represents an IRC connection.
+//
+// The zero value is not usable, you should use New().
 type Conn struct {
 	config           Config
 	connected        bool
@@ -25,8 +29,9 @@ type Conn struct {
 	writer *textproto.Writer
 }
 
-// Connect with the given config to the server and return a new IrcConnection. It uses
-// tls for connection.
+// New connects with the given config to the server and return a new IrcConnection.
+//
+// It uses tls for connection.
 // The connection is buffered for reads and writes.
 func New(config Config) (*Conn, error) {
 	irc := &Conn{

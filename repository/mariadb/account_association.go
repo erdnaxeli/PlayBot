@@ -5,7 +5,7 @@ import (
 	"errors"
 )
 
-var UserNotFoundErr = errors.New("user not found")
+var ErrUserNotFound = errors.New("user not found")
 
 func (r mariaDbRepository) GetUserFromNick(nick string) (string, error) {
 	row := r.db.QueryRow(
@@ -43,7 +43,7 @@ func (r mariaDbRepository) GetUserFromCode(code string) (string, error) {
 	var user string
 	err := row.Scan(&user)
 	if err != nil {
-		if err == sql.ErrNoRows {
+		if errors.Is(err, sql.ErrNoRows) {
 			return "", nil
 		}
 
@@ -73,7 +73,7 @@ func (r mariaDbRepository) SaveAssociation(user string, nick string) error {
 	if err != nil {
 		return err
 	} else if rowsAffected == 0 {
-		return UserNotFoundErr
+		return ErrUserNotFound
 	}
 
 	return nil

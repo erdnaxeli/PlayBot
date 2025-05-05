@@ -41,7 +41,7 @@ func main() {
 
 	conn.OnConnect(b.onConnect)
 	conn.OnNotice(b.onMessage)
-	conn.OnPrivmsg(b.onMessage)
+	conn.OnPrivMsg(b.onMessage)
 
 	log.Fatal(conn.Dispatch())
 }

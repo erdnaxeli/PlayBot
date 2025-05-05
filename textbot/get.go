@@ -14,7 +14,7 @@ import (
 	"github.com/spf13/pflag"
 )
 
-func (t *textBot) getCmd(channel types.Channel, person types.Person, args []string) (Result, error) {
+func (t *textBot) getCmd(channel types.Channel, _ types.Person, args []string) (Result, error) {
 	var all bool
 	var force bool
 
@@ -43,7 +43,7 @@ func (t *textBot) getCmd(channel types.Channel, person types.Person, args []stri
 	var record types.MusicRecord
 	var count int64
 
-	recordID, record, err = t.getById(flagSet.Args())
+	recordID, record, err = t.getByID(flagSet.Args())
 	if err != nil {
 		return Result{}, err
 	} else if recordID == 0 {
@@ -105,7 +105,7 @@ func (t *textBot) getCmd(channel types.Channel, person types.Person, args []stri
 			}
 		}
 
-		recordID = searchResult.Id()
+		recordID = searchResult.ID()
 		record = searchResult.MusicRecord()
 	}
 
@@ -129,7 +129,7 @@ func (t *textBot) getCmd(channel types.Channel, person types.Person, args []stri
 	return result, nil
 }
 
-func (t *textBot) getById(args []string) (int64, types.MusicRecord, error) {
+func (t *textBot) getByID(args []string) (int64, types.MusicRecord, error) {
 	if len(args) != 1 {
 		return 0, types.MusicRecord{}, nil
 	}

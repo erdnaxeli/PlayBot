@@ -39,7 +39,7 @@ func assertEqualRecordRow(t *testing.T, tx *sql.Tx, record types.MusicRecord, ro
 	err := row.Scan(&type_, &url, &senderIrc, &sender, &title, &duration, &file, &broken, &channel, &playlist, &externalId)
 	require.Nil(t, err)
 	assert.Equal(t, record.Source, type_)
-	assert.Equal(t, record.Url, url)
+	assert.Equal(t, record.URL, url)
 	assert.False(t, senderIrc.Valid)
 	assert.True(t, sender.Valid)
 	assert.Equal(t, record.Band.Name, sender.V)
@@ -50,7 +50,7 @@ func assertEqualRecordRow(t *testing.T, tx *sql.Tx, record types.MusicRecord, ro
 	assert.False(t, channel.Valid)
 	assert.Equal(t, 0, playlist)
 	assert.True(t, externalId.Valid)
-	assert.Equal(t, record.RecordId, externalId.V)
+	assert.Equal(t, record.RecordID, externalId.V)
 }
 
 func getTestRepository(t *testing.T) mariaDbRepository {
@@ -71,6 +71,10 @@ func getMusicPost() types.MusicPost {
 	return post
 }
 
+func closeDB(db *sql.DB) {
+	_ = db.Close()
+}
+
 func rollback(tx *sql.Tx) {
 	_ = tx.Rollback()
 }
@@ -84,7 +88,7 @@ func TestSearchResult(t *testing.T) {
 		musicRecord: record,
 	}
 
-	assert.Equal(t, result.id, result.Id())
+	assert.Equal(t, result.id, result.ID())
 	assert.Equal(t, result.musicRecord, result.MusicRecord())
 }
 
@@ -94,14 +98,14 @@ func TestInsertOrUpdateMusicRecord_Insert(t *testing.T) {
 		Band:     types.Band{Name: "TestBand"},
 		Duration: recordDuration,
 		Name:     "testName",
-		RecordId: "testRecordId",
+		RecordID: "testRecordId",
 		Source:   "testSource",
-		Url:      "testUrl",
+		URL:      "testUrl",
 	}
 	r := getTestRepository(t)
-	defer r.db.Close()
+	defer func() { _ = r.db.Close() }()
 	tx, _ := r.db.Begin()
-	defer func() { _ = tx.Rollback() }()
+	defer rollback(tx)
 
 	recordId, isNew, err := r.insertOrUpdateMusicRecord(tx, record)
 
@@ -116,12 +120,12 @@ func TestInsertOrUpdateMusicRecord_Update(t *testing.T) {
 		Band:     types.Band{Name: "TestBand"},
 		Duration: recordDuration,
 		Name:     "testName",
-		RecordId: "testRecordId",
+		RecordID: "testRecordId",
 		Source:   "testSource",
-		Url:      "testUrl",
+		URL:      "testUrl",
 	}
 	r := getTestRepository(t)
-	defer r.db.Close()
+	defer closeDB(r.db)
 	tx, _ := r.db.Begin()
 	defer rollback(tx)
 	recordId, isNew, err := r.insertOrUpdateMusicRecord(tx, record)
@@ -131,7 +135,7 @@ func TestInsertOrUpdateMusicRecord_Update(t *testing.T) {
 	record.Band.Name = "NewBand"
 	record.Duration += 1
 	record.Name = "NewName"
-	record.RecordId = "NewRecordId"
+	record.RecordID = "NewRecordId"
 	record.Source = "NewSource"
 
 	newRecordId, isNew, err := r.insertOrUpdateMusicRecord(tx, record)
@@ -145,7 +149,7 @@ func TestInsertOrUpdateMusicRecord_Update(t *testing.T) {
 func TestGetTags_noTags(t *testing.T) {
 	// setup
 	r := getTestRepository(t)
-	defer r.db.Close()
+	defer closeDB(r.db)
 
 	// test
 	tags, err := r.GetTags(1987654334)
@@ -158,7 +162,7 @@ func TestGetTags_noTags(t *testing.T) {
 func TestGetTags_tags(t *testing.T) {
 	// setup
 	r := getTestRepository(t)
-	defer r.db.Close()
+	defer closeDB(r.db)
 
 	// test data
 	musicPost := getMusicPost()
@@ -182,7 +186,7 @@ func TestGetTags_tags(t *testing.T) {
 func TestSaveChannelPost_ok(t *testing.T) {
 	// setup
 	r := getTestRepository(t)
-	defer r.db.Close()
+	defer closeDB(r.db)
 	tx, _ := r.db.Begin()
 	defer rollback(tx)
 	var record types.MusicRecord
@@ -229,7 +233,7 @@ func TestSaveChannelPost_ok(t *testing.T) {
 func TestSaveChannelPost_RecordNotFound(t *testing.T) {
 	// setup
 	r := getTestRepository(t)
-	defer r.db.Close()
+	defer closeDB(r.db)
 	tx, _ := r.db.Begin()
 	defer rollback(tx)
 	var person types.Person
@@ -262,7 +266,7 @@ func TestSaveChannelPost_RecordNotFound(t *testing.T) {
 func TestSaveMusicRecord_once(t *testing.T) {
 	// setup
 	r := getTestRepository(t)
-	defer r.db.Close()
+	defer closeDB(r.db)
 	post := getMusicPost()
 
 	// test
@@ -301,7 +305,7 @@ func TestSaveMusicRecord_twice(t *testing.T) {
 	// setup
 
 	r := getTestRepository(t)
-	defer r.db.Close()
+	defer closeDB(r.db)
 
 	post := getMusicPost()
 
@@ -367,7 +371,7 @@ func TestSaveTags(t *testing.T) {
 	// setup
 
 	r := getTestRepository(t)
-	defer r.db.Close()
+	defer closeDB(r.db)
 
 	post := getMusicPost()
 	recordId, isNew, err := r.SaveMusicPost(post)

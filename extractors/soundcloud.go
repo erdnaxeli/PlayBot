@@ -9,6 +9,14 @@ import (
 	"github.com/erdnaxeli/PlayBot/types"
 )
 
+type SoundCloudUnknownRecordIDError struct {
+	RecordID string
+}
+
+func (err SoundCloudUnknownRecordIDError) Error() string {
+	return fmt.Sprintf("unknown SoundCloud record ID '%s'", err.RecordID)
+}
+
 type SoundCloudExtractor struct {
 	ldJsonExtractor ldjson.LdJsonExtractor
 }
@@ -19,6 +27,7 @@ func NewSoundCloudExtractor(ldJsonExtractor ldjson.LdJsonExtractor) SoundCloudEx
 	}
 }
 
+// Match returns the URL matched and the record ID.
 func (SoundCloudExtractor) Match(url string) (string, string) {
 	re := regexp.MustCompile(`(?:^|[^!])(https?://(?:www\.)?soundcloud\.com/([a-zA-Z0-9_-]+/[a-zA-Z0-9_-]+)(?:\?.+)?)`)
 	groups := re.FindStringSubmatch(url)
@@ -29,18 +38,19 @@ func (SoundCloudExtractor) Match(url string) (string, string) {
 	return groups[1], groups[2]
 }
 
+// Extracts returns the record data.
 func (e SoundCloudExtractor) Extract(recordId string) (types.MusicRecord, error) {
 	record, err := e.ldJsonExtractor.Extract("https://m.soundcloud.com/" + recordId)
 	if err != nil {
 		return types.MusicRecord{}, err
 	}
 
-	recordId, err = e.getRecordId(record.RecordId)
+	recordId, err = e.getRecordId(record.RecordID)
 	if err != nil {
 		return types.MusicRecord{}, err
 	}
 
-	record.RecordId = recordId
+	record.RecordID = recordId
 	record.Source = "soundcloud"
 	return record, nil
 }
@@ -48,7 +58,7 @@ func (e SoundCloudExtractor) Extract(recordId string) (types.MusicRecord, error)
 func (SoundCloudExtractor) getRecordId(recordId string) (string, error) {
 	parts := strings.Split(recordId, ":")
 	if len(parts) != 3 {
-		return "", fmt.Errorf("unknown Soundcloud record id '%s'", recordId)
+		return "", SoundCloudUnknownRecordIDError{recordId}
 	}
 
 	return parts[2], nil

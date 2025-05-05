@@ -164,7 +164,7 @@ func TestExecute_record_noCmd(t *testing.T) {
 	// The record does not comes from a command, the URL must be removed before calling
 	// Print().
 	printArgs := execResult
-	printArgs.Url = ""
+	printArgs.URL = ""
 	mrp := &TestMusicRecordPrinter{}
 	mrp.On("Print", printArgs).Return(printResult)
 
@@ -339,7 +339,7 @@ func TestExecute_NoRecordFoundError_noCount(t *testing.T) {
 
 	b := &TestTextBot{}
 	b.On("Execute", channelName, personName, msg, user).Return(
-		execResult, true, playbot.NoRecordFoundError,
+		execResult, true, playbot.ErrNoRecordFound,
 	)
 
 	r := &TestUserNickAssociationRepository{}
@@ -397,7 +397,7 @@ func TestExecute_NoRecordFoundError_count(t *testing.T) {
 
 	b := &TestTextBot{}
 	b.On("Execute", channelName, personName, msg, user).Return(
-		execResult, true, playbot.NoRecordFoundError,
+		execResult, true, playbot.ErrNoRecordFound,
 	)
 
 	r := &TestUserNickAssociationRepository{}
@@ -453,7 +453,7 @@ func TestExecute_InvalidOffsetError(t *testing.T) {
 
 	b := &TestTextBot{}
 	b.On("Execute", channelName, personName, msg, user).Return(
-		execResult, true, playbot.InvalidOffsetError,
+		execResult, true, playbot.ErrInvalidOffset,
 	)
 
 	r := &TestUserNickAssociationRepository{}
@@ -509,7 +509,7 @@ func TestExecute_OffsetToBigError(t *testing.T) {
 
 	b := &TestTextBot{}
 	b.On("Execute", channelName, personName, msg, user).Return(
-		execResult, true, textbot.OffsetToBigError,
+		execResult, true, textbot.ErrOffsetToBig,
 	)
 
 	r := &TestUserNickAssociationRepository{}
@@ -565,7 +565,7 @@ func TestExecute_InvalidUsageError(t *testing.T) {
 
 	b := &TestTextBot{}
 	b.On("Execute", channelName, personName, msg, user).Return(
-		execResult, true, textbot.InvalidUsageError,
+		execResult, true, textbot.ErrInvalidUsage,
 	)
 
 	r := &TestUserNickAssociationRepository{}
@@ -621,7 +621,7 @@ func TestExecute_AuthenticationRequired_noResult(t *testing.T) {
 
 	b := &TestTextBot{}
 	b.On("Execute", channelName, personName, msg, user).Return(
-		execResult, true, textbot.AuthenticationRequired,
+		execResult, true, textbot.ErrAuthenticationRequired,
 	)
 
 	r := &TestUserNickAssociationRepository{}
@@ -677,7 +677,7 @@ func TestExecute_AuthenticationRequired_result(t *testing.T) {
 
 	b := &TestTextBot{}
 	b.On("Execute", channelName, personName, msg, user).Return(
-		execResult, true, textbot.AuthenticationRequired,
+		execResult, true, textbot.ErrAuthenticationRequired,
 	)
 
 	r := &TestUserNickAssociationRepository{}

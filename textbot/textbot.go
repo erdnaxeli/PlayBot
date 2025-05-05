@@ -1,4 +1,4 @@
-// Implementation of a Playbot using text message to interact.
+// Package texbot parses text messages in order to interact with a Playbot object.
 //
 // Commands are used with an exclamation mark. Currently implemented commands are:
 // * !get
@@ -19,6 +19,9 @@ import (
 	"github.com/erdnaxeli/PlayBot/types"
 )
 
+// Playbot is the interface that any object must implement to be used by textbot.
+//
+// The texbot parses the user input and executes the actions through the given Playbot object.
 type Playbot interface {
 	GetTags(recordID int64) ([]string, error)
 	GetLastID(types.Channel, int) (int64, error)
@@ -51,6 +54,7 @@ type textBot struct {
 	lastCommandsMutex sync.RWMutex
 }
 
+// New returns an instance of a textbot.
 func New(playbot Playbot) *textBot {
 	return &textBot{
 		playbot:      playbot,
@@ -90,17 +94,17 @@ func (t *textBot) Execute(
 
 	switch cmd {
 	case "!broken":
-		err = NotImplementedError
+		err = ErrNotImplemented
 	case "!conf":
-		err = NotImplementedError
+		err = ErrNotImplemented
 	case "!fav":
 		result, err = t.favCmd(channel, person, cmdArgs, user)
 	case "!later":
-		err = NotImplementedError
+		err = ErrNotImplemented
 	case "!get":
 		result, err = t.getCmd(channel, person, cmdArgs)
 	case "!help":
-		err = NotImplementedError
+		err = ErrNotImplemented
 	case "!stats":
 		result, err = t.statsCmd(channel, person, cmdArgs)
 	case "!tag":
@@ -139,7 +143,7 @@ func (t *textBot) getRecordIDFromArgs(channel types.Channel, args []string) (int
 	}
 
 	if recordID < -10 {
-		return 0, args, OffsetToBigError
+		return 0, args, ErrOffsetToBig
 	}
 
 	recordID, err := t.playbot.GetLastID(channel, int(recordID))

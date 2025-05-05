@@ -9,6 +9,7 @@ import (
 	"github.com/erdnaxeli/PlayBot/types"
 )
 
+// Search represents a search request.
 type Search struct {
 	// Context used for the search. If the same search is execute again, the same
 	// context will be used. If this context is canceled, the search is discarded
@@ -31,7 +32,7 @@ type Search struct {
 	ExcludedTags []string
 }
 
-// Search for a music record.
+// SearchMusicRecord searches for a music record.
 //
 // The first time a search is done in a channel, its parameters and context are
 // saved. When doing another search in the same channel, if the parameters are the
@@ -117,7 +118,7 @@ func (p *Playbot) consumeSearchCursor(ctx context.Context, search Search, cursor
 				return nil, SearchCanceledError{err}
 			}
 
-			err := NoRecordFoundError
+			err := ErrNoRecordFound
 			return nil, err
 		}
 

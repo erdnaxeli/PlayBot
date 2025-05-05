@@ -7,6 +7,7 @@ import (
 	"github.com/erdnaxeli/PlayBot/types"
 )
 
+// Repository is an object that can store and retrieve music records, posts, tags and favorites.
 type Repository interface {
 	// Return the ID of the last music record in the given channel.
 	// If an offset is given, that many music record are skipped before selecting the
@@ -16,7 +17,7 @@ type Repository interface {
 	GetMusicRecord(musicRecordID int64) (types.MusicRecord, error)
 	GetMusicRecordStatistics(musicRecordID int64) (MusicRecordStatistics, error)
 	// Return a slice of tags for the given music record.
-	GetTags(musicRecordId int64) ([]string, error)
+	GetTags(musicRecordID int64) ([]string, error)
 	// Save the given record into the user's favorites.
 	//
 	// If the record was already in the user's favorites, return no error. If the record
@@ -27,23 +28,26 @@ type Repository interface {
 	// latter case, the post is updated.
 	SaveMusicPost(types.MusicPost) (int64, bool, error)
 	// Save the given tags for the music record pointed by the given ID.
-	SaveTags(musicRecordId int64, tags []string) error
+	SaveTags(musicRecordID int64, tags []string) error
 	// Search for a music record. It returns a channel to stream SearchResult objects.
 	SearchMusicRecord(
 		ctx context.Context, channel types.Channel, words []string, tags []string,
 	) (int64, chan SearchResult, error)
 }
 
+// Extractor is an object that allow to extract record data from an URL pointing to a music record.
 type Extractor interface {
 	// Given an URL, Extract tries to extract the record information and returns it.
 	Extract(url string) (types.MusicRecord, error)
 }
 
+// SearchResult is the result of a search.
 type SearchResult interface {
-	Id() int64
+	ID() int64
 	MusicRecord() types.MusicRecord
 }
 
+// Playbot exposes multiple methods to do user actions.
 type Playbot struct {
 	extractor  Extractor
 	repository Repository
@@ -60,6 +64,9 @@ type searchCursor struct {
 	search Search
 }
 
+// New constructs a new instance of Playbot.
+//
+// It actually returns a pointer to the object, so methods can share state.
 func New(extractor Extractor, repository Repository) *Playbot {
 	return &Playbot{
 		extractor:  extractor,

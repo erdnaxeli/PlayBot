@@ -41,7 +41,7 @@ func (s *server) Execute(ctx context.Context, msg *pb.TextMessage) (*pb.Result, 
 
 		if !cmd {
 			// It is a new record, we don't print the URL.
-			result.Url = ""
+			result.URL = ""
 		}
 
 		resultMsg := s.recordPrinter.Print(result)

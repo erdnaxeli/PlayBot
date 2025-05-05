@@ -29,13 +29,13 @@ func (i *Conn) Dispatch() error {
 				return i.errIfConnected(err)
 			}
 		case "001":
-			event = RPL_WELCOME
+			event = RPLWelcome
 		case "MODE":
-			event = MODE
+			event = Mode
 		case "NOTICE":
-			event = NOTICE
+			event = Notice
 		case "PRIVMSG":
-			event = PRIVMSG
+			event = PrivMsg
 		}
 
 		handler, ok := i.handlers[event]

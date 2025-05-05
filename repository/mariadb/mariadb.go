@@ -17,7 +17,7 @@ type searchResult struct {
 	musicRecord types.MusicRecord
 }
 
-func (s searchResult) Id() int64 {
+func (s searchResult) ID() int64 {
 	return s.id
 }
 

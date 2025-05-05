@@ -60,9 +60,9 @@ func (r mariaDbRepository) SearchMusicRecord(
 					Band:     types.Band{Name: sender.V},
 					Duration: time.Duration(duration.V * int64(time.Second)),
 					Name:     title,
-					RecordId: recordID.V,
+					RecordID: recordID.V,
 					Source:   source,
-					Url:      url,
+					URL:      url,
 				},
 			}
 

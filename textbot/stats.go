@@ -3,10 +3,10 @@ package textbot
 import "github.com/erdnaxeli/PlayBot/types"
 
 func (t *textBot) statsCmd(
-	channel types.Channel, person types.Person, args []string,
+	channel types.Channel, _ types.Person, args []string,
 ) (Result, error) {
 	if len(args) > 1 {
-		return Result{}, InvalidUsageError
+		return Result{}, ErrInvalidUsage
 	}
 
 	recordID, _, err := t.getRecordIDFromArgs(channel, args)
