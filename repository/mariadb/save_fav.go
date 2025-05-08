@@ -8,9 +8,9 @@ import (
 )
 
 const (
-	_ER_DUP_ENTRY           = 1062
-	_ER_NO_REFERENCED_ROW   = 1216
-	_ER_NO_REFERENCED_ROW_2 = 1452
+	dupEntryErr         = 1062
+	noReferencedRowErr  = 1216
+	noReferencedRow2Err = 1452
 )
 
 func (r mariaDbRepository) SaveFav(user string, recordID int64) error {
@@ -25,12 +25,11 @@ func (r mariaDbRepository) SaveFav(user string, recordID int64) error {
 	if err != nil {
 		mysqlErr := &mysql.MySQLError{}
 		if errors.As(err, &mysqlErr) {
-			if mysqlErr.Number == _ER_DUP_ENTRY {
+			switch mysqlErr.Number {
+			case dupEntryErr:
 				return nil
-			} else if mysqlErr.Number == _ER_NO_REFERENCED_ROW ||
-				mysqlErr.Number == _ER_NO_REFERENCED_ROW_2 {
-
-				return playbot.NoRecordFoundError
+			case noReferencedRowErr, noReferencedRow2Err:
+				return playbot.ErrNoRecordFound
 			}
 		}
 

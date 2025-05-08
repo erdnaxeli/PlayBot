@@ -8,7 +8,7 @@ import (
 	"github.com/erdnaxeli/PlayBot/playbot"
 )
 
-func (s *server) Execute(ctx context.Context, msg *pb.TextMessage) (*pb.Result, error) {
+func (s *server) Execute(_ context.Context, msg *pb.TextMessage) (*pb.Result, error) {
 	log.Printf(
 		"Parsing message by %s in %s: %s",
 		msg.PersonName,
@@ -41,16 +41,16 @@ func (s *server) Execute(ctx context.Context, msg *pb.TextMessage) (*pb.Result, 
 
 		if !cmd {
 			// It is a new record, we don't print the URL.
-			result.Url = ""
+			result.URL = ""
 		}
 
-		resultMsg := s.recordPrinter.Print(result)
+		resultMsg := s.recordPrinter.PrintResult(result)
 		return makeResult(&pb.IrcMessage{Msg: resultMsg, To: msg.ChannelName}), nil
 	} else if (result.Statistics != playbot.MusicRecordStatistics{}) {
 		// Statistics were returned.
 
 		return makeResult(&pb.IrcMessage{
-			Msg: s.statsPrinter.Print(result.Statistics),
+			Msg: s.statsPrinter.PrintStatistics(result.Statistics),
 			To:  msg.ChannelName,
 		}), nil
 	}

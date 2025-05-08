@@ -1,6 +1,9 @@
 package mariadb
 
-func (r mariaDbRepository) SaveTags(musicRecordId int64, tags []string) error {
+// SaveTags add some tags to a music record.
+//
+// The given tags are added to any existing tags already linked to this music record.
+func (r mariaDbRepository) SaveTags(musicRecordID int64, tags []string) error {
 	tx, err := r.db.Begin()
 	if err != nil {
 		return err
@@ -19,10 +22,10 @@ func (r mariaDbRepository) SaveTags(musicRecordId int64, tags []string) error {
 	if err != nil {
 		return err
 	}
-	defer stmt.Close()
+	defer func() { _ = stmt.Close() }()
 
 	for _, tag := range tags {
-		_, err := stmt.Exec(musicRecordId, tag)
+		_, err := stmt.Exec(musicRecordID, tag)
 		if err != nil {
 			return err
 		}

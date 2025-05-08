@@ -21,12 +21,12 @@ func startServer() error {
 		return err
 	}
 
-	ldjsonExtractor := ldjson.NewLdJsonExtractor()
+	ldjsonExtractor := ldjson.New()
 	extractor := extractors.New(
 		extractors.NewBandcampExtractor(ldjsonExtractor),
 		extractors.NewSoundCloudExtractor(ldjsonExtractor),
 		&extractors.YoutubeExtractor{
-			ApiKey: config.YoutubeApiKey,
+			APIKey: config.YoutubeAPIKey,
 		},
 	)
 
@@ -47,7 +47,7 @@ func startServer() error {
 
 	bot := textbot.New(playbot.New(extractor, repository))
 	server := server.NewServer(
-		config.Irc.Nick,
+		config.IRC.Nick,
 		bot,
 		repository,
 		server.IrcMusicRecordPrinter{},

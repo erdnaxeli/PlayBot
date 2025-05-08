@@ -59,5 +59,5 @@ func TestGetLastID_noRecordFound(t *testing.T) {
 	result, err := r.GetLastID(channel, 0)
 
 	assert.Equal(t, result, int64(0))
-	assert.ErrorIs(t, err, playbot.NoRecordFoundError)
+	assert.ErrorIs(t, err, playbot.ErrNoRecordFound)
 }

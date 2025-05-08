@@ -29,7 +29,7 @@ func (r mariaDbRepository) GetLastID(channel types.Channel, offset int) (int64, 
 	err := row.Scan(&id)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return 0, playbot.NoRecordFoundError
+			return 0, playbot.ErrNoRecordFound
 		}
 		return 0, err
 	}

@@ -1,3 +1,4 @@
+// Package ldjson a type to extract JSON-LD data from a webpage.
 package ldjson
 
 import (
@@ -11,39 +12,44 @@ import (
 	"golang.org/x/net/html"
 )
 
+// MusicAlbum contains data about the album where the music was publied.
 type MusicAlbum struct {
 	ByArtist MusicGroup `json:"byArtist"`
 }
 
+// MusicGroup contains data about the author of the music.
 type MusicGroup struct {
 	Name string `json:"name"`
 }
 
+// MusicRecording contains data about a music.
 type MusicRecording struct {
 	ByArtist         MusicGroup `json:"byArtist"`
 	Duration         string     `json:"duration"`
-	Id               string     `json:"@id"`
+	ID               string     `json:"@id"`
 	InAlbum          MusicAlbum `json:"InAlbum"`
 	MainEntityOfPage string     `json:"mainEntityOfPage"`
 	Name             string     `json:"name"`
-	Url              string     `json:"url"`
+	URL              string     `json:"url"`
 }
 
-type LdJsonExtractor interface {
+// Extractor is able to extracts music data from an URL exposing JSON-LD data.
+type Extractor interface {
 	Extract(string) (types.MusicRecord, error)
 }
 
-type ldJsonExtractor struct{}
+type extractor struct{}
 
-func NewLdJsonExtractor() LdJsonExtractor {
-	return ldJsonExtractor{}
+// New returns a new instance of an Extractor object.
+func New() Extractor {
+	return extractor{}
 }
 
-func (e ldJsonExtractor) Extract(url string) (types.MusicRecord, error) {
+func (e extractor) Extract(url string) (types.MusicRecord, error) {
 	record := e.getMusicRecord(url)
-	recordUrl := record.Url
-	if recordUrl == "" {
-		recordUrl = record.MainEntityOfPage
+	recordURL := record.URL
+	if recordURL == "" {
+		recordURL = record.MainEntityOfPage
 	}
 
 	band := record.InAlbum.ByArtist.Name
@@ -60,12 +66,12 @@ func (e ldJsonExtractor) Extract(url string) (types.MusicRecord, error) {
 		Band:     types.Band{Name: band},
 		Duration: duration,
 		Name:     record.Name,
-		RecordId: record.Id,
-		Url:      recordUrl,
+		RecordID: record.ID,
+		URL:      recordURL,
 	}, nil
 }
 
-func (e ldJsonExtractor) getMusicRecord(url string) MusicRecording {
+func (e extractor) getMusicRecord(url string) MusicRecording {
 	var resp *http.Response
 	var err error
 
@@ -74,16 +80,16 @@ func (e ldJsonExtractor) getMusicRecord(url string) MusicRecording {
 
 		if err != nil {
 			log.Fatal("Error while Get", err)
-		} else {
-			if resp.StatusCode == http.StatusOK {
-				break
-			} else {
-				log.Print("Received an HTTP error: ", resp.Status)
-				time.Sleep(2 * time.Second)
-			}
 		}
+
+		if resp.StatusCode == http.StatusOK {
+			break
+		}
+
+		log.Print("Received an HTTP error: ", resp.Status)
+		time.Sleep(2 * time.Second)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode != http.StatusOK {
 		log.Fatal("Received an HTTP error: ", resp.Status)
@@ -109,7 +115,7 @@ func (e ldJsonExtractor) getMusicRecord(url string) MusicRecording {
 }
 
 // Return the content of the first <script type="application/ld+json"> node found.
-func (e ldJsonExtractor) parse(node *html.Node) string {
+func (e extractor) parse(node *html.Node) string {
 	if node.Type == html.ElementNode && node.Data == "script" {
 		for _, attr := range node.Attr {
 			if attr.Key == "type" && attr.Val == "application/ld+json" {

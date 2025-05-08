@@ -9,8 +9,8 @@ import (
 func TestSoundcloudMatch(t *testing.T) {
 	tests := []struct {
 		in         string
-		matchedUrl string
-		recordId   string
+		matchedURL string
+		recordID   string
 	}{
 		{"", "", ""},
 		{
@@ -54,9 +54,9 @@ func TestSoundcloudMatch(t *testing.T) {
 		t.Run(
 			test.in,
 			func(t *testing.T) {
-				matchedUrl, recordId := SoundCloudExtractor{}.Match(test.in)
-				assert.Equal(t, test.matchedUrl, matchedUrl)
-				assert.Equal(t, test.recordId, recordId)
+				matchedURL, recordID := SoundCloudExtractor{}.Match(test.in)
+				assert.Equal(t, test.matchedURL, matchedURL)
+				assert.Equal(t, test.recordID, recordID)
 			},
 		)
 	}

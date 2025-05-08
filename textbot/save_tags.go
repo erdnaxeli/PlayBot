@@ -1,15 +1,11 @@
 package textbot
 
 import (
-	"errors"
-
 	"github.com/erdnaxeli/PlayBot/types"
 )
 
-var OffsetToBigError = errors.New("offset too big")
-
 func (t *textBot) saveTagsCmd(
-	channel types.Channel, person types.Person, args []string,
+	channel types.Channel, _ types.Person, args []string,
 ) error {
 	if len(args) == 0 {
 		return nil

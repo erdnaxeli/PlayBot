@@ -12,14 +12,14 @@ func (r mariaDbRepository) SaveMusicPost(post types.MusicPost) (int64, bool, err
 		return 0, false, err
 	}
 
-	recordId, isNew, err := r.insertOrUpdateMusicRecord(tx, post.MusicRecord)
+	recordID, isNew, err := r.insertOrUpdateMusicRecord(tx, post.MusicRecord)
 	if err != nil {
 		return 0, false, err
 	}
 
-	err = r.saveChannelPost(tx, recordId, post.Person, post.Channel)
+	err = r.saveChannelPost(tx, recordID, post.Person, post.Channel)
 	if err != nil {
-		return recordId, isNew, err
+		return recordID, isNew, err
 	}
 
 	err = tx.Commit()
@@ -28,7 +28,7 @@ func (r mariaDbRepository) SaveMusicPost(post types.MusicPost) (int64, bool, err
 		return 0, false, err
 	}
 
-	return recordId, isNew, nil
+	return recordID, isNew, nil
 }
 
 func (mariaDbRepository) insertOrUpdateMusicRecord(tx *sql.Tx, record types.MusicRecord) (int64, bool, error) {
@@ -54,17 +54,17 @@ func (mariaDbRepository) insertOrUpdateMusicRecord(tx *sql.Tx, record types.Musi
 				external_id = value(external_id)
 		`,
 		record.Source,
-		record.Url,
+		record.URL,
 		record.Band.Name,
 		record.Name,
 		int(record.Duration.Seconds()),
-		record.RecordId,
+		record.RecordID,
 	)
 	if err != nil {
 		return 0, false, err
 	}
 
-	recordId, err := result.LastInsertId()
+	recordID, err := result.LastInsertId()
 	if err != nil {
 		return 0, false, err
 	}
@@ -74,11 +74,11 @@ func (mariaDbRepository) insertOrUpdateMusicRecord(tx *sql.Tx, record types.Musi
 		return 0, false, err
 	}
 
-	return recordId, rowsAffected == 1, nil
+	return recordID, rowsAffected == 1, nil
 }
 
 func (mariaDbRepository) saveChannelPost(
-	tx *sql.Tx, recordId int64, person types.Person, channel types.Channel,
+	tx *sql.Tx, recordID int64, person types.Person, channel types.Channel,
 ) error {
 	_, err := tx.Exec(
 		`
@@ -92,7 +92,7 @@ func (mariaDbRepository) saveChannelPost(
 			)
 		`,
 		person.Name,
-		recordId,
+		recordID,
 		channel.Name,
 	)
 	if err != nil {

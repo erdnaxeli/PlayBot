@@ -1,3 +1,4 @@
+// Package config provides functions to read the app configuration.
 package config
 
 import (
@@ -6,7 +7,8 @@ import (
 	"github.com/spf13/viper"
 )
 
-type IrcConfig struct {
+// IRCConfig represent the specific configuration for the IRC client of the app.
+type IRCConfig struct {
 	Host             string   `json:"host"`
 	Port             int      `json:"port"`
 	Nick             string   `json:"nick"`
@@ -14,17 +16,19 @@ type IrcConfig struct {
 	NickServPassword string   `json:"nickserv_password"`
 }
 
+// Config represents the configuration to run the playbot app.
 type Config struct {
-	YoutubeApiKey string
+	YoutubeAPIKey string
 	DbName        string
 	DbUser        string
 	DbHost        string
 	DbPassword    string
-	Irc           IrcConfig
+	IRC           IRCConfig
 	Timezone      string
 	ServerAddress string
 }
 
+// ReadConfig read the configuratio from a config file or env variables.
 func ReadConfig() (Config, error) {
 	viper.SetDefault("server.address", "localhost:1111")
 
@@ -52,12 +56,12 @@ func ReadConfig() (Config, error) {
 	_ = viper.BindEnv("timezone", "TIMEZONE")
 
 	return Config{
-		YoutubeApiKey: viper.GetString("youtube_api_key"),
+		YoutubeAPIKey: viper.GetString("youtube_api_key"),
 		DbName:        viper.GetString("bdd"),
 		DbHost:        viper.GetString("host"),
 		DbUser:        viper.GetString("user"),
 		DbPassword:    viper.GetString("passwd"),
-		Irc: IrcConfig{
+		IRC: IRCConfig{
 			Host:             viper.GetString("irc.host"),
 			Port:             viper.GetInt("irc.port"),
 			Nick:             viper.GetString("irc.nick"),

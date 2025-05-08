@@ -55,7 +55,7 @@ type TestMusicRecordPrinter struct {
 	mock.Mock
 }
 
-func (t *TestMusicRecordPrinter) Print(result textbot.Result) string {
+func (t *TestMusicRecordPrinter) PrintResult(result textbot.Result) string {
 	args := t.Called(result)
 	return args.String(0)
 }
@@ -64,7 +64,7 @@ type TestStatsPrinter struct {
 	mock.Mock
 }
 
-func (t *TestStatsPrinter) Print(stats playbot.MusicRecordStatistics) string {
+func (t *TestStatsPrinter) PrintStatistics(stats playbot.MusicRecordStatistics) string {
 	args := t.Called(stats)
 	return args.String(0)
 }
@@ -164,9 +164,9 @@ func TestExecute_record_noCmd(t *testing.T) {
 	// The record does not comes from a command, the URL must be removed before calling
 	// Print().
 	printArgs := execResult
-	printArgs.Url = ""
+	printArgs.URL = ""
 	mrp := &TestMusicRecordPrinter{}
-	mrp.On("Print", printArgs).Return(printResult)
+	mrp.On("PrintResult", printArgs).Return(printResult)
 
 	sp := &TestStatsPrinter{}
 	server := server.NewServer(botNick, b, r, mrp, sp)
@@ -225,7 +225,7 @@ func TestExecute_record_cmd(t *testing.T) {
 	r.On("GetUserFromNick", personName).Return(user, nil)
 
 	mrp := &TestMusicRecordPrinter{}
-	mrp.On("Print", execResult).Return(printResult)
+	mrp.On("PrintResult", execResult).Return(printResult)
 
 	sp := &TestStatsPrinter{}
 	server := server.NewServer(botNick, b, r, mrp, sp)
@@ -287,7 +287,7 @@ func TestExecute_statistics(t *testing.T) {
 
 	statsPrintResult := gofakeit.Phrase()
 	sp := &TestStatsPrinter{}
-	sp.On("Print", execResult.Statistics).Return(statsPrintResult)
+	sp.On("PrintStatistics", execResult.Statistics).Return(statsPrintResult)
 
 	server := server.NewServer(botNick, b, r, mrp, sp)
 
@@ -339,7 +339,7 @@ func TestExecute_NoRecordFoundError_noCount(t *testing.T) {
 
 	b := &TestTextBot{}
 	b.On("Execute", channelName, personName, msg, user).Return(
-		execResult, true, playbot.NoRecordFoundError,
+		execResult, true, playbot.ErrNoRecordFound,
 	)
 
 	r := &TestUserNickAssociationRepository{}
@@ -397,7 +397,7 @@ func TestExecute_NoRecordFoundError_count(t *testing.T) {
 
 	b := &TestTextBot{}
 	b.On("Execute", channelName, personName, msg, user).Return(
-		execResult, true, playbot.NoRecordFoundError,
+		execResult, true, playbot.ErrNoRecordFound,
 	)
 
 	r := &TestUserNickAssociationRepository{}
@@ -453,7 +453,7 @@ func TestExecute_InvalidOffsetError(t *testing.T) {
 
 	b := &TestTextBot{}
 	b.On("Execute", channelName, personName, msg, user).Return(
-		execResult, true, playbot.InvalidOffsetError,
+		execResult, true, playbot.ErrInvalidOffset,
 	)
 
 	r := &TestUserNickAssociationRepository{}
@@ -509,7 +509,7 @@ func TestExecute_OffsetToBigError(t *testing.T) {
 
 	b := &TestTextBot{}
 	b.On("Execute", channelName, personName, msg, user).Return(
-		execResult, true, textbot.OffsetToBigError,
+		execResult, true, textbot.ErrOffsetToBig,
 	)
 
 	r := &TestUserNickAssociationRepository{}
@@ -565,7 +565,7 @@ func TestExecute_InvalidUsageError(t *testing.T) {
 
 	b := &TestTextBot{}
 	b.On("Execute", channelName, personName, msg, user).Return(
-		execResult, true, textbot.InvalidUsageError,
+		execResult, true, textbot.ErrInvalidUsage,
 	)
 
 	r := &TestUserNickAssociationRepository{}
@@ -621,7 +621,7 @@ func TestExecute_AuthenticationRequired_noResult(t *testing.T) {
 
 	b := &TestTextBot{}
 	b.On("Execute", channelName, personName, msg, user).Return(
-		execResult, true, textbot.AuthenticationRequired,
+		execResult, true, textbot.ErrAuthenticationRequired,
 	)
 
 	r := &TestUserNickAssociationRepository{}
@@ -677,7 +677,7 @@ func TestExecute_AuthenticationRequired_result(t *testing.T) {
 
 	b := &TestTextBot{}
 	b.On("Execute", channelName, personName, msg, user).Return(
-		execResult, true, textbot.AuthenticationRequired,
+		execResult, true, textbot.ErrAuthenticationRequired,
 	)
 
 	r := &TestUserNickAssociationRepository{}
@@ -685,7 +685,7 @@ func TestExecute_AuthenticationRequired_result(t *testing.T) {
 
 	printResult := gofakeit.Phrase()
 	mrp := &TestMusicRecordPrinter{}
-	mrp.On("Print", execResult).Return(printResult)
+	mrp.On("PrintResult", execResult).Return(printResult)
 
 	sp := &TestStatsPrinter{}
 	server := server.NewServer(botNick, b, r, mrp, sp)

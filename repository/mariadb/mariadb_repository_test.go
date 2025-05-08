@@ -12,7 +12,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func assertEqualRecordRow(t *testing.T, tx *sql.Tx, record types.MusicRecord, rowId int64) {
+func assertEqualRecordRow(t *testing.T, tx *sql.Tx, record types.MusicRecord, rowID int64) {
 	row := tx.QueryRow(
 		`
 			select
@@ -31,15 +31,15 @@ func assertEqualRecordRow(t *testing.T, tx *sql.Tx, record types.MusicRecord, ro
 			where
 				id = ?
 		`,
-		rowId,
+		rowID,
 	)
-	var type_, url, title string
-	var senderIrc, sender, file, channel, externalId sql.Null[string]
+	var source, url, title string
+	var senderIrc, sender, file, channel, externalID sql.Null[string]
 	var duration, broken, playlist int
-	err := row.Scan(&type_, &url, &senderIrc, &sender, &title, &duration, &file, &broken, &channel, &playlist, &externalId)
+	err := row.Scan(&source, &url, &senderIrc, &sender, &title, &duration, &file, &broken, &channel, &playlist, &externalID)
 	require.Nil(t, err)
-	assert.Equal(t, record.Source, type_)
-	assert.Equal(t, record.Url, url)
+	assert.Equal(t, record.Source, source)
+	assert.Equal(t, record.URL, url)
 	assert.False(t, senderIrc.Valid)
 	assert.True(t, sender.Valid)
 	assert.Equal(t, record.Band.Name, sender.V)
@@ -49,8 +49,8 @@ func assertEqualRecordRow(t *testing.T, tx *sql.Tx, record types.MusicRecord, ro
 	assert.Equal(t, 0, broken)
 	assert.False(t, channel.Valid)
 	assert.Equal(t, 0, playlist)
-	assert.True(t, externalId.Valid)
-	assert.Equal(t, record.RecordId, externalId.V)
+	assert.True(t, externalID.Valid)
+	assert.Equal(t, record.RecordID, externalID.V)
 }
 
 func getTestRepository(t *testing.T) mariaDbRepository {
@@ -71,6 +71,10 @@ func getMusicPost() types.MusicPost {
 	return post
 }
 
+func closeDB(db *sql.DB) {
+	_ = db.Close()
+}
+
 func rollback(tx *sql.Tx) {
 	_ = tx.Rollback()
 }
@@ -84,7 +88,7 @@ func TestSearchResult(t *testing.T) {
 		musicRecord: record,
 	}
 
-	assert.Equal(t, result.id, result.Id())
+	assert.Equal(t, result.id, result.ID())
 	assert.Equal(t, result.musicRecord, result.MusicRecord())
 }
 
@@ -94,19 +98,19 @@ func TestInsertOrUpdateMusicRecord_Insert(t *testing.T) {
 		Band:     types.Band{Name: "TestBand"},
 		Duration: recordDuration,
 		Name:     "testName",
-		RecordId: "testRecordId",
+		RecordID: "testRecordID",
 		Source:   "testSource",
-		Url:      "testUrl",
+		URL:      "testUrl",
 	}
 	r := getTestRepository(t)
-	defer r.db.Close()
+	defer func() { _ = r.db.Close() }()
 	tx, _ := r.db.Begin()
-	defer func() { _ = tx.Rollback() }()
+	defer rollback(tx)
 
-	recordId, isNew, err := r.insertOrUpdateMusicRecord(tx, record)
+	recordID, isNew, err := r.insertOrUpdateMusicRecord(tx, record)
 
 	require.Nil(t, err)
-	assertEqualRecordRow(t, tx, record, recordId)
+	assertEqualRecordRow(t, tx, record, recordID)
 	assert.True(t, isNew)
 }
 
@@ -116,36 +120,36 @@ func TestInsertOrUpdateMusicRecord_Update(t *testing.T) {
 		Band:     types.Band{Name: "TestBand"},
 		Duration: recordDuration,
 		Name:     "testName",
-		RecordId: "testRecordId",
+		RecordID: "testRecordID",
 		Source:   "testSource",
-		Url:      "testUrl",
+		URL:      "testUrl",
 	}
 	r := getTestRepository(t)
-	defer r.db.Close()
+	defer closeDB(r.db)
 	tx, _ := r.db.Begin()
 	defer rollback(tx)
-	recordId, isNew, err := r.insertOrUpdateMusicRecord(tx, record)
+	recordID, isNew, err := r.insertOrUpdateMusicRecord(tx, record)
 	require.Nil(t, err)
 	require.True(t, isNew)
 
 	record.Band.Name = "NewBand"
-	record.Duration += 1
+	record.Duration++
 	record.Name = "NewName"
-	record.RecordId = "NewRecordId"
+	record.RecordID = "NewRecordID"
 	record.Source = "NewSource"
 
-	newRecordId, isNew, err := r.insertOrUpdateMusicRecord(tx, record)
+	newRecordID, isNew, err := r.insertOrUpdateMusicRecord(tx, record)
 
 	require.Nil(t, err)
-	assert.Equal(t, recordId, newRecordId)
-	assertEqualRecordRow(t, tx, record, recordId)
+	assert.Equal(t, recordID, newRecordID)
+	assertEqualRecordRow(t, tx, record, recordID)
 	assert.False(t, isNew)
 }
 
 func TestGetTags_noTags(t *testing.T) {
 	// setup
 	r := getTestRepository(t)
-	defer r.db.Close()
+	defer closeDB(r.db)
 
 	// test
 	tags, err := r.GetTags(1987654334)
@@ -158,19 +162,19 @@ func TestGetTags_noTags(t *testing.T) {
 func TestGetTags_tags(t *testing.T) {
 	// setup
 	r := getTestRepository(t)
-	defer r.db.Close()
+	defer closeDB(r.db)
 
 	// test data
 	musicPost := getMusicPost()
 	tags := []string{"some", "tags", "to", "test"}
-	recordId, isNew, err := r.SaveMusicPost(musicPost)
+	recordID, isNew, err := r.SaveMusicPost(musicPost)
 	require.Nil(t, err)
 	require.True(t, isNew)
-	err = r.SaveTags(recordId, tags)
+	err = r.SaveTags(recordID, tags)
 	require.Nil(t, err)
 
 	// test
-	foundTags, err := r.GetTags(recordId)
+	foundTags, err := r.GetTags(recordID)
 	require.Nil(t, err)
 
 	// assertions
@@ -182,13 +186,13 @@ func TestGetTags_tags(t *testing.T) {
 func TestSaveChannelPost_ok(t *testing.T) {
 	// setup
 	r := getTestRepository(t)
-	defer r.db.Close()
+	defer closeDB(r.db)
 	tx, _ := r.db.Begin()
 	defer rollback(tx)
 	var record types.MusicRecord
 	_ = gofakeit.Struct(&record)
 	record.Duration, _ = time.ParseDuration("1m35s")
-	recordId, isNew, err := r.insertOrUpdateMusicRecord(tx, record)
+	recordID, isNew, err := r.insertOrUpdateMusicRecord(tx, record)
 	require.Nil(t, err)
 	require.True(t, isNew)
 
@@ -199,7 +203,7 @@ func TestSaveChannelPost_ok(t *testing.T) {
 	_ = gofakeit.Struct(&channel)
 
 	// test
-	err = r.saveChannelPost(tx, recordId, person, channel)
+	err = r.saveChannelPost(tx, recordID, person, channel)
 	require.Nil(t, err)
 
 	// assertions
@@ -212,7 +216,7 @@ func TestSaveChannelPost_ok(t *testing.T) {
 			where
 				content = ?
 		`,
-		recordId,
+		recordID,
 	)
 	require.Nil(t, err)
 	require.True(t, rows.Next())
@@ -229,7 +233,7 @@ func TestSaveChannelPost_ok(t *testing.T) {
 func TestSaveChannelPost_RecordNotFound(t *testing.T) {
 	// setup
 	r := getTestRepository(t)
-	defer r.db.Close()
+	defer closeDB(r.db)
 	tx, _ := r.db.Begin()
 	defer rollback(tx)
 	var person types.Person
@@ -262,18 +266,18 @@ func TestSaveChannelPost_RecordNotFound(t *testing.T) {
 func TestSaveMusicRecord_once(t *testing.T) {
 	// setup
 	r := getTestRepository(t)
-	defer r.db.Close()
+	defer closeDB(r.db)
 	post := getMusicPost()
 
 	// test
-	recordId, isNew, err := r.SaveMusicPost(post)
+	recordID, isNew, err := r.SaveMusicPost(post)
 	require.Nil(t, err)
 
 	// assertions
 	assert.True(t, isNew)
 	tx, _ := r.db.Begin()
 	defer rollback(tx)
-	assertEqualRecordRow(t, tx, post.MusicRecord, recordId)
+	assertEqualRecordRow(t, tx, post.MusicRecord, recordID)
 	rows, err := tx.Query(
 		`
 			select
@@ -283,7 +287,7 @@ func TestSaveMusicRecord_once(t *testing.T) {
 			where
 				content = ?
 		`,
-		recordId,
+		recordID,
 	)
 	require.Nil(t, err)
 	require.True(t, rows.Next())
@@ -301,12 +305,12 @@ func TestSaveMusicRecord_twice(t *testing.T) {
 	// setup
 
 	r := getTestRepository(t)
-	defer r.db.Close()
+	defer closeDB(r.db)
 
 	post := getMusicPost()
 
 	// first post
-	recordId, isNew, err := r.SaveMusicPost(post)
+	recordID, isNew, err := r.SaveMusicPost(post)
 	require.Nil(t, err)
 	require.True(t, isNew)
 
@@ -317,17 +321,17 @@ func TestSaveMusicRecord_twice(t *testing.T) {
 
 	// test
 
-	secondRecordId, isNew, err := r.SaveMusicPost(secondPost)
+	secondRecordID, isNew, err := r.SaveMusicPost(secondPost)
 	require.Nil(t, err)
 
 	// assertions
 
 	assert.False(t, isNew)
-	assert.Equal(t, recordId, secondRecordId)
+	assert.Equal(t, recordID, secondRecordID)
 
 	tx, _ := r.db.Begin()
 	defer rollback(tx)
-	assertEqualRecordRow(t, tx, post.MusicRecord, recordId)
+	assertEqualRecordRow(t, tx, post.MusicRecord, recordID)
 
 	var senderIrc, channelName string
 	rows, err := tx.Query(
@@ -340,7 +344,7 @@ func TestSaveMusicRecord_twice(t *testing.T) {
 				content = ?
 			order by date
 		`,
-		recordId,
+		recordID,
 	)
 	require.Nil(t, err)
 
@@ -367,10 +371,10 @@ func TestSaveTags(t *testing.T) {
 	// setup
 
 	r := getTestRepository(t)
-	defer r.db.Close()
+	defer closeDB(r.db)
 
 	post := getMusicPost()
-	recordId, isNew, err := r.SaveMusicPost(post)
+	recordID, isNew, err := r.SaveMusicPost(post)
 	require.Nil(t, err)
 	require.True(t, isNew)
 
@@ -379,7 +383,7 @@ func TestSaveTags(t *testing.T) {
 
 	// test
 
-	err = r.SaveTags(recordId, tags)
+	err = r.SaveTags(recordID, tags)
 	require.Nil(t, err)
 
 	// assertions
@@ -392,7 +396,7 @@ func TestSaveTags(t *testing.T) {
 			from playbot_tags
 			where id = ?
 		`,
-		recordId,
+		recordID,
 	)
 	require.Nil(t, err)
 

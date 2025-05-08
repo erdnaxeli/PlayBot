@@ -2,6 +2,7 @@ package irc
 
 import "strings"
 
+// Message represents a parsed IRC message.
 type Message struct {
 	Prefix     string
 	Command    string

@@ -1,13 +1,13 @@
 package mariadb
 
-func (r mariaDbRepository) GetTags(musicRecordId int64) ([]string, error) {
+func (r mariaDbRepository) GetTags(musicRecordID int64) ([]string, error) {
 	rows, err := r.db.Query(
 		`
 			select tag
 			from playbot_tags
 			where id = ?
 		`,
-		musicRecordId,
+		musicRecordID,
 	)
 	if err != nil {
 		return []string{}, err

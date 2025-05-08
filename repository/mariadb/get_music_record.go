@@ -8,7 +8,7 @@ import (
 	"github.com/erdnaxeli/PlayBot/types"
 )
 
-func (r mariaDbRepository) GetMusicRecord(musicRecordId int64) (types.MusicRecord, error) {
+func (r mariaDbRepository) GetMusicRecord(musicRecordID int64) (types.MusicRecord, error) {
 	row := r.db.QueryRow(
 		`
 			select
@@ -21,7 +21,7 @@ func (r mariaDbRepository) GetMusicRecord(musicRecordId int64) (types.MusicRecor
 			from playbot p
 			where p.id = ?
 		`,
-		musicRecordId,
+		musicRecordID,
 	)
 
 	var title, url, source string
@@ -40,9 +40,9 @@ func (r mariaDbRepository) GetMusicRecord(musicRecordId int64) (types.MusicRecor
 		Band:     types.Band{Name: sender.V},
 		Duration: time.Duration(duration.V * int64(time.Second)),
 		Name:     title,
-		RecordId: recordID.V,
+		RecordID: recordID.V,
 		Source:   source,
-		Url:      url,
+		URL:      url,
 	}
 	return record, nil
 }

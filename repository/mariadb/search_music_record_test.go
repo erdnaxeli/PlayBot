@@ -25,10 +25,10 @@ func assertEqualSearchResults(
 	t *testing.T, expected []searchResult, actual []playbot.SearchResult,
 ) {
 	require.Len(t, actual, len(expected))
-	sort.Slice(actual, func(i, j int) bool { return actual[i].Id() < actual[j].Id() })
+	sort.Slice(actual, func(i, j int) bool { return actual[i].ID() < actual[j].ID() })
 
 	for idx := range expected {
-		assert.Equal(t, expected[idx].id, actual[idx].Id())
+		assert.Equal(t, expected[idx].id, actual[idx].ID())
 		assert.Equal(t, expected[idx].musicRecord, actual[idx].MusicRecord())
 	}
 }
@@ -83,10 +83,10 @@ func TestSearchMusicRecord_all(t *testing.T) {
 	post1.Channel.Name = channel1
 	post1.MusicRecord.Name = "1 - La Classe Américaine"
 	post1.MusicRecord.Band.Name = "George Abitbol"
-	post1RecordId, isNew, err := r.SaveMusicPost(post1)
+	post1RecordID, isNew, err := r.SaveMusicPost(post1)
 	require.True(t, isNew)
 	require.Nil(t, err)
-	err = r.SaveTags(post1RecordId, []string{tag1, tag2, "classic"})
+	err = r.SaveTags(post1RecordID, []string{tag1, tag2, "classic"})
 	require.Nil(t, err)
 
 	// A post in channel1 matching:
@@ -96,10 +96,10 @@ func TestSearchMusicRecord_all(t *testing.T) {
 	post2.Channel.Name = channel1
 	post2.MusicRecord.Name = "2 - La Classe Américaine"
 	post2.MusicRecord.Band.Name = "George Brassens"
-	post2RecordId, isNew, err := r.SaveMusicPost(post2)
+	post2RecordID, isNew, err := r.SaveMusicPost(post2)
 	require.True(t, isNew)
 	require.Nil(t, err)
-	err = r.SaveTags(post2RecordId, []string{tag1, tag2, "wrong"})
+	err = r.SaveTags(post2RecordID, []string{tag1, tag2, "wrong"})
 	require.Nil(t, err)
 
 	// A post in channel1 matching:
@@ -109,10 +109,10 @@ func TestSearchMusicRecord_all(t *testing.T) {
 	post3.Channel.Name = channel1
 	post3.MusicRecord.Name = "3 - La Classe Américaine"
 	post3.MusicRecord.Band.Name = "George Abitbol"
-	post3RecordId, isNew, err := r.SaveMusicPost(post3)
+	post3RecordID, isNew, err := r.SaveMusicPost(post3)
 	require.True(t, isNew)
 	require.Nil(t, err)
-	err = r.SaveTags(post3RecordId, []string{tag1, "english", "classic"})
+	err = r.SaveTags(post3RecordID, []string{tag1, "english", "classic"})
 	require.Nil(t, err)
 
 	// A post in channel1 matching:
@@ -122,10 +122,10 @@ func TestSearchMusicRecord_all(t *testing.T) {
 	post4.Channel.Name = channel1
 	post4.MusicRecord.Name = "4 - George Abitbol, a memorial"
 	post4.MusicRecord.Band.Name = "The American Class Fan Club"
-	post4RecordId, isNew, err := r.SaveMusicPost(post4)
+	post4RecordID, isNew, err := r.SaveMusicPost(post4)
 	require.True(t, isNew)
 	require.Nil(t, err)
-	err = r.SaveTags(post4RecordId, []string{tag1, tag2, "documentary"})
+	err = r.SaveTags(post4RecordID, []string{tag1, tag2, "documentary"})
 	require.Nil(t, err)
 
 	// A post in channel2 matching:
@@ -135,10 +135,10 @@ func TestSearchMusicRecord_all(t *testing.T) {
 	post5.Channel.Name = channel2
 	post5.MusicRecord.Name = "5 - La Classe Américaine"
 	post5.MusicRecord.Band.Name = "George Abitbol"
-	post5RecordId, isNew, err := r.SaveMusicPost(post5)
+	post5RecordID, isNew, err := r.SaveMusicPost(post5)
 	require.True(t, isNew)
 	require.Nil(t, err)
-	err = r.SaveTags(post5RecordId, []string{tag1, tag2, "classic"})
+	err = r.SaveTags(post5RecordID, []string{tag1, tag2, "classic"})
 	require.Nil(t, err)
 
 	// A post in channel2 matching:
@@ -148,10 +148,10 @@ func TestSearchMusicRecord_all(t *testing.T) {
 	post6.Channel.Name = channel2
 	post6.MusicRecord.Name = "6 - La Classe Américaine"
 	post6.MusicRecord.Band.Name = "George Brassens"
-	post6RecordId, isNew, err := r.SaveMusicPost(post6)
+	post6RecordID, isNew, err := r.SaveMusicPost(post6)
 	require.True(t, isNew)
 	require.Nil(t, err)
-	err = r.SaveTags(post6RecordId, []string{tag1, tag2, "wrong"})
+	err = r.SaveTags(post6RecordID, []string{tag1, tag2, "wrong"})
 	require.Nil(t, err)
 
 	// A post in channel2 matching:
@@ -161,10 +161,10 @@ func TestSearchMusicRecord_all(t *testing.T) {
 	post7.Channel.Name = channel2
 	post7.MusicRecord.Name = "7 - La Classe Américaine"
 	post7.MusicRecord.Band.Name = "George Abitbol"
-	post7RecordId, isNew, err := r.SaveMusicPost(post7)
+	post7RecordID, isNew, err := r.SaveMusicPost(post7)
 	require.True(t, isNew)
 	require.Nil(t, err)
-	err = r.SaveTags(post7RecordId, []string{tag1, "english", "classic"})
+	err = r.SaveTags(post7RecordID, []string{tag1, "english", "classic"})
 	require.Nil(t, err)
 
 	// A post in channel2 matching:
@@ -174,10 +174,10 @@ func TestSearchMusicRecord_all(t *testing.T) {
 	post8.Channel.Name = channel2
 	post8.MusicRecord.Name = "8 - George Abitbol, a memorial"
 	post8.MusicRecord.Band.Name = "The American Class Fan Club"
-	post8RecordId, isNew, err := r.SaveMusicPost(post8)
+	post8RecordID, isNew, err := r.SaveMusicPost(post8)
 	require.True(t, isNew)
 	require.Nil(t, err)
-	err = r.SaveTags(post8RecordId, []string{tag1, tag2, "documentary"})
+	err = r.SaveTags(post8RecordID, []string{tag1, tag2, "documentary"})
 	require.Nil(t, err)
 
 	// test
@@ -195,8 +195,8 @@ func TestSearchMusicRecord_all(t *testing.T) {
 			[]string{"class", "bol"},
 			[]string{tag1, tag2},
 			[]searchResult{
-				{id: post1RecordId, musicRecord: post1.MusicRecord},
-				{id: post4RecordId, musicRecord: post4.MusicRecord},
+				{id: post1RecordID, musicRecord: post1.MusicRecord},
+				{id: post4RecordID, musicRecord: post4.MusicRecord},
 			},
 		},
 		{
@@ -205,10 +205,10 @@ func TestSearchMusicRecord_all(t *testing.T) {
 			[]string{"class", "bol"},
 			[]string{tag1, tag2},
 			[]searchResult{
-				{id: post1RecordId, musicRecord: post1.MusicRecord},
-				{id: post4RecordId, musicRecord: post4.MusicRecord},
-				{id: post5RecordId, musicRecord: post5.MusicRecord},
-				{id: post8RecordId, musicRecord: post8.MusicRecord},
+				{id: post1RecordID, musicRecord: post1.MusicRecord},
+				{id: post4RecordID, musicRecord: post4.MusicRecord},
+				{id: post5RecordID, musicRecord: post5.MusicRecord},
+				{id: post8RecordID, musicRecord: post8.MusicRecord},
 			},
 		},
 		{
@@ -217,9 +217,9 @@ func TestSearchMusicRecord_all(t *testing.T) {
 			[]string{},
 			[]string{tag1, tag2},
 			[]searchResult{
-				{id: post1RecordId, musicRecord: post1.MusicRecord},
-				{id: post2RecordId, musicRecord: post2.MusicRecord},
-				{id: post4RecordId, musicRecord: post4.MusicRecord},
+				{id: post1RecordID, musicRecord: post1.MusicRecord},
+				{id: post2RecordID, musicRecord: post2.MusicRecord},
+				{id: post4RecordID, musicRecord: post4.MusicRecord},
 			},
 		},
 		{
@@ -228,9 +228,9 @@ func TestSearchMusicRecord_all(t *testing.T) {
 			[]string{"class", "bol"},
 			[]string{},
 			[]searchResult{
-				{id: post1RecordId, musicRecord: post1.MusicRecord},
-				{id: post3RecordId, musicRecord: post3.MusicRecord},
-				{id: post4RecordId, musicRecord: post4.MusicRecord},
+				{id: post1RecordID, musicRecord: post1.MusicRecord},
+				{id: post3RecordID, musicRecord: post3.MusicRecord},
+				{id: post4RecordID, musicRecord: post4.MusicRecord},
 			},
 		},
 		{
@@ -239,10 +239,10 @@ func TestSearchMusicRecord_all(t *testing.T) {
 			[]string{},
 			[]string{},
 			[]searchResult{
-				{id: post1RecordId, musicRecord: post1.MusicRecord},
-				{id: post2RecordId, musicRecord: post2.MusicRecord},
-				{id: post3RecordId, musicRecord: post3.MusicRecord},
-				{id: post4RecordId, musicRecord: post4.MusicRecord},
+				{id: post1RecordID, musicRecord: post1.MusicRecord},
+				{id: post2RecordID, musicRecord: post2.MusicRecord},
+				{id: post3RecordID, musicRecord: post3.MusicRecord},
+				{id: post4RecordID, musicRecord: post4.MusicRecord},
 			},
 		},
 	}
@@ -285,10 +285,10 @@ func TestSearchMusicRecord_noChannelNoWordsNoTags(t *testing.T) {
 	post1.Channel.Name = channel1
 	post1.MusicRecord.Name = "1 - La Classe Américaine"
 	post1.MusicRecord.Band.Name = "George Abitbol"
-	post1RecordId, isNew, err := r.SaveMusicPost(post1)
+	post1RecordID, isNew, err := r.SaveMusicPost(post1)
 	require.True(t, isNew)
 	require.Nil(t, err)
-	err = r.SaveTags(post1RecordId, []string{"movie", "french", "classic"})
+	err = r.SaveTags(post1RecordID, []string{"movie", "french", "classic"})
 	require.Nil(t, err)
 
 	// A post in channel1 matching:
@@ -297,10 +297,10 @@ func TestSearchMusicRecord_noChannelNoWordsNoTags(t *testing.T) {
 	post2.Channel.Name = channel1
 	post2.MusicRecord.Name = "2 - La Classe Américaine"
 	post2.MusicRecord.Band.Name = "George Brassens"
-	post2RecordId, isNew, err := r.SaveMusicPost(post2)
+	post2RecordID, isNew, err := r.SaveMusicPost(post2)
 	require.True(t, isNew)
 	require.Nil(t, err)
-	err = r.SaveTags(post2RecordId, []string{"movie", "french", "wrong"})
+	err = r.SaveTags(post2RecordID, []string{"movie", "french", "wrong"})
 	require.Nil(t, err)
 
 	// A post in channel1 matching:
@@ -309,10 +309,10 @@ func TestSearchMusicRecord_noChannelNoWordsNoTags(t *testing.T) {
 	post3.Channel.Name = channel1
 	post3.MusicRecord.Name = "3 - La Classe Américaine"
 	post3.MusicRecord.Band.Name = "George Abitbol"
-	post3RecordId, isNew, err := r.SaveMusicPost(post3)
+	post3RecordID, isNew, err := r.SaveMusicPost(post3)
 	require.True(t, isNew)
 	require.Nil(t, err)
-	err = r.SaveTags(post3RecordId, []string{"movie", "english", "classic"})
+	err = r.SaveTags(post3RecordID, []string{"movie", "english", "classic"})
 	require.Nil(t, err)
 
 	// A post in channel1 matching:
@@ -321,10 +321,10 @@ func TestSearchMusicRecord_noChannelNoWordsNoTags(t *testing.T) {
 	post4.Channel.Name = channel1
 	post4.MusicRecord.Name = "4 - George Abitbol, a memorial"
 	post4.MusicRecord.Band.Name = "The American Class Fan Club"
-	post4RecordId, isNew, err := r.SaveMusicPost(post4)
+	post4RecordID, isNew, err := r.SaveMusicPost(post4)
 	require.True(t, isNew)
 	require.Nil(t, err)
-	err = r.SaveTags(post4RecordId, []string{"movie", "french", "documentary"})
+	err = r.SaveTags(post4RecordID, []string{"movie", "french", "documentary"})
 	require.Nil(t, err)
 
 	// A post in channel2 matching:
@@ -333,10 +333,10 @@ func TestSearchMusicRecord_noChannelNoWordsNoTags(t *testing.T) {
 	post5.Channel.Name = channel2
 	post5.MusicRecord.Name = "5 - La Classe Américaine"
 	post5.MusicRecord.Band.Name = "George Abitbol"
-	post5RecordId, isNew, err := r.SaveMusicPost(post5)
+	post5RecordID, isNew, err := r.SaveMusicPost(post5)
 	require.True(t, isNew)
 	require.Nil(t, err)
-	err = r.SaveTags(post5RecordId, []string{"movie", "french", "classic"})
+	err = r.SaveTags(post5RecordID, []string{"movie", "french", "classic"})
 	require.Nil(t, err)
 
 	// A post in channel2 matching:
@@ -345,10 +345,10 @@ func TestSearchMusicRecord_noChannelNoWordsNoTags(t *testing.T) {
 	post6.Channel.Name = channel2
 	post6.MusicRecord.Name = "6 - La Classe Américaine"
 	post6.MusicRecord.Band.Name = "George Brassens"
-	post6RecordId, isNew, err := r.SaveMusicPost(post6)
+	post6RecordID, isNew, err := r.SaveMusicPost(post6)
 	require.True(t, isNew)
 	require.Nil(t, err)
-	err = r.SaveTags(post6RecordId, []string{"movie", "french", "wrong"})
+	err = r.SaveTags(post6RecordID, []string{"movie", "french", "wrong"})
 	require.Nil(t, err)
 
 	// A post in channel2 matching:
@@ -357,10 +357,10 @@ func TestSearchMusicRecord_noChannelNoWordsNoTags(t *testing.T) {
 	post7.Channel.Name = channel2
 	post7.MusicRecord.Name = "7 - La Classe Américaine"
 	post7.MusicRecord.Band.Name = "George Abitbol"
-	post7RecordId, isNew, err := r.SaveMusicPost(post7)
+	post7RecordID, isNew, err := r.SaveMusicPost(post7)
 	require.True(t, isNew)
 	require.Nil(t, err)
-	err = r.SaveTags(post7RecordId, []string{"movie", "english", "classic"})
+	err = r.SaveTags(post7RecordID, []string{"movie", "english", "classic"})
 	require.Nil(t, err)
 
 	// A post in channel2 matching:
@@ -369,10 +369,10 @@ func TestSearchMusicRecord_noChannelNoWordsNoTags(t *testing.T) {
 	post8.Channel.Name = channel2
 	post8.MusicRecord.Name = "8 - George Abitbol, a memorial"
 	post8.MusicRecord.Band.Name = "The American Class Fan Club"
-	post8RecordId, isNew, err := r.SaveMusicPost(post8)
+	post8RecordID, isNew, err := r.SaveMusicPost(post8)
 	require.True(t, isNew)
 	require.Nil(t, err)
-	err = r.SaveTags(post8RecordId, []string{"movie", "french", "documentary"})
+	err = r.SaveTags(post8RecordID, []string{"movie", "french", "documentary"})
 	require.Nil(t, err)
 
 	// test
@@ -486,7 +486,7 @@ func TestSearchMusicRecord_nullableColumns(t *testing.T) {
 			)
 		`,
 		post.MusicRecord.Source,
-		post.MusicRecord.Url,
+		post.MusicRecord.URL,
 		post.MusicRecord.Name,
 		int(post.MusicRecord.Duration.Seconds()),
 	)
@@ -530,5 +530,5 @@ func TestSearchMusicRecord_nullableColumns(t *testing.T) {
 
 	assert.Len(t, results, 1)
 	assert.Equal(t, "", results[0].MusicRecord().Band.Name)
-	assert.Equal(t, "", results[0].MusicRecord().RecordId)
+	assert.Equal(t, "", results[0].MusicRecord().RecordID)
 }
