@@ -9,7 +9,12 @@ import (
 	"github.com/erdnaxeli/PlayBot/types"
 )
 
-func (r mariaDbRepository) GetMusicRecordStatistics(recordID int64) (playbot.MusicRecordStatistics, error) {
+// GetMusicRecordStatistics returns the MusicRecordStatistics corresponding to a given music record.
+//
+// If the ID references an non existant music record, the zero value of the MusicRecordStatistics type is returned and error is nil.
+// You can check this case by looking at MusicRecordStatistics.PostsCount.
+// If it is zero, it means there is no post for this music record (and thus the music record does not exist).
+func (r Repository) GetMusicRecordStatistics(recordID int64) (playbot.MusicRecordStatistics, error) {
 	row := r.db.QueryRow(
 		`
 		with first_post as (

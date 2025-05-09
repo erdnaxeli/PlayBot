@@ -8,16 +8,19 @@ import (
 	"github.com/erdnaxeli/PlayBot/types"
 )
 
+// BandcampExtractor implements the MatcherExtractor interface.
 type BandcampExtractor struct {
-	ldJsonExtractor ldjson.LdJsonExtractor
+	ldJSONExtractor ldjson.Extractor
 }
 
-func NewBandcampExtractor(ldJsonExtractor ldjson.LdJsonExtractor) BandcampExtractor {
+// NewBandcampExtractor return a new BandcampExtractor instance.
+func NewBandcampExtractor(ldJSONExtractor ldjson.Extractor) BandcampExtractor {
 	return BandcampExtractor{
-		ldJsonExtractor: ldJsonExtractor,
+		ldJSONExtractor: ldJSONExtractor,
 	}
 }
 
+// Match returns the URL matched and the record ID.
 func (e BandcampExtractor) Match(url string) (string, string) {
 	re := regexp.MustCompile(
 		`(?:^|[^!])(https?://([a-z]+)\.bandcamp\.com/track/([a-zA-Z0-9_-]+))`,
@@ -27,12 +30,13 @@ func (e BandcampExtractor) Match(url string) (string, string) {
 		return "", ""
 	}
 
-	normalizedUrl := fmt.Sprintf("https://%s.bandcamp.com/track/%s", groups[2], groups[3])
-	return groups[1], normalizedUrl
+	normalizedURL := fmt.Sprintf("https://%s.bandcamp.com/track/%s", groups[2], groups[3])
+	return groups[1], normalizedURL
 }
 
-func (e BandcampExtractor) Extract(recordId string) (types.MusicRecord, error) {
-	record, err := e.ldJsonExtractor.Extract(recordId)
+// Extract return a record data.
+func (e BandcampExtractor) Extract(recordID string) (types.MusicRecord, error) {
+	record, err := e.ldJSONExtractor.Extract(recordID)
 	if err != nil {
 		return types.MusicRecord{}, err
 	}

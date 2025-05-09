@@ -12,7 +12,7 @@ import (
 func (s *server) handleError(msg *pb.TextMessage, result textbot.Result, err error) (*pb.Result, error) {
 	var messages []*pb.IrcMessage
 
-	if errors.Is(err, playbot.NoRecordFoundError) {
+	if errors.Is(err, playbot.ErrNoRecordFound) {
 		if result.Count > 0 {
 			messages = append(messages, &pb.IrcMessage{
 				Msg: "Tu tournes en rond, Jack !",
@@ -24,22 +24,22 @@ func (s *server) handleError(msg *pb.TextMessage, result textbot.Result, err err
 				To:  msg.ChannelName,
 			})
 		}
-	} else if errors.Is(err, playbot.InvalidOffsetError) {
+	} else if errors.Is(err, playbot.ErrInvalidOffset) {
 		messages = append(messages, &pb.IrcMessage{
 			Msg: "Offset invalide.",
 			To:  msg.ChannelName,
 		})
-	} else if errors.Is(err, textbot.OffsetToBigError) {
+	} else if errors.Is(err, textbot.ErrOffsetToBig) {
 		messages = append(messages, &pb.IrcMessage{
 			Msg: "T'as compté tout ça sans te tromper, srsly ?",
 			To:  msg.ChannelName,
 		})
-	} else if errors.Is(err, textbot.InvalidUsageError) {
+	} else if errors.Is(err, textbot.ErrInvalidUsage) {
 		messages = append(messages, &pb.IrcMessage{
 			Msg: insults[rand.IntN(len(insults))],
 			To:  msg.ChannelName,
 		})
-	} else if errors.Is(err, textbot.AuthenticationRequired) {
+	} else if errors.Is(err, textbot.ErrAuthenticationRequired) {
 		messages = append(messages, &pb.IrcMessage{
 			Msg: "Ce nick n'est associé à aucun login arise. Va sur http://nightiies.iiens.net/links/fav pour obtenir ton code personel.",
 			To:  msg.PersonName,
@@ -53,7 +53,7 @@ func (s *server) handleError(msg *pb.TextMessage, result textbot.Result, err err
 
 	if result.ID != 0 {
 		messages = append(messages, &pb.IrcMessage{
-			Msg: s.recordPrinter.Print(result),
+			Msg: s.recordPrinter.PrintResult(result),
 			To:  msg.ChannelName,
 		})
 	}

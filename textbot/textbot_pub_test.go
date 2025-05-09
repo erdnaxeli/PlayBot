@@ -240,7 +240,7 @@ func TestExecute_fav_noUser(t *testing.T) {
 	)
 
 	// assertions
-	assert.ErrorIs(t, err, textbot.AuthenticationRequired)
+	assert.ErrorIs(t, err, textbot.ErrAuthenticationRequired)
 	tp.AssertExpectations(t)
 }
 
@@ -290,7 +290,7 @@ func TestExecute_fav_noUser_musicRecord(t *testing.T) {
 		},
 		result,
 	)
-	assert.ErrorIs(t, err, textbot.AuthenticationRequired)
+	assert.ErrorIs(t, err, textbot.ErrAuthenticationRequired)
 }
 
 func TestExecute_saveTagsCmd_tagsWithoutHash(t *testing.T) {

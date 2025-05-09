@@ -8,6 +8,10 @@ import (
 	"net/textproto"
 )
 
+// Connect connect to the IRC server.
+//
+// It starts the TCP connection, and then send a NICK command followed by an
+// USER command.
 func (i *Conn) Connect() error {
 	var err error
 	i.conn, err = tls.Dial(

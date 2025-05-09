@@ -1,3 +1,4 @@
+// Package server provides an object implementing the pb.PlaybotCli interface.
 package server
 
 import (
@@ -17,34 +18,41 @@ var insults = [...]string{
 	"T'es mauvais, Jack !",
 }
 
-// Start of text char
+// STX represents the start of text character.
 const STX = rune(2)
 
 var emptyResult = &pb.Result{}
 
-type textBot interface {
+// TextBot is the interface that wraps the main Execute method.
+type TextBot interface {
+	// Execute parses a message from a channel, store any record found in the message, and execute any command found.
+	//
+	// The format of the command depends on the implementation.
 	Execute(
 		channelName string, personName string, msg string, user string,
 	) (textbot.Result, bool, error)
 }
 
+// UserNickAssociationRepository is the interface that wraps methods to authenticate an user.
 type UserNickAssociationRepository interface {
 	GetUserFromNick(nick string) (string, error)
 	GetUserFromCode(code string) (string, error)
 	SaveAssociation(user string, nick string) error
 }
 
+// MusicRecordPrinter is the interface that wraps the PrintResult method.
 type MusicRecordPrinter interface {
-	Print(record textbot.Result) string
+	PrintResult(record textbot.Result) string
 }
 
+// StatisticsPrinter is the interface that wraps the PrintStatistics methods.
 type StatisticsPrinter interface {
-	Print(stats playbot.MusicRecordStatistics) string
+	PrintStatistics(stats playbot.MusicRecordStatistics) string
 }
 
 type server struct {
 	botNick       string
-	textBot       textBot
+	textBot       TextBot
 	repository    UserNickAssociationRepository
 	recordPrinter MusicRecordPrinter
 	statsPrinter  StatisticsPrinter
@@ -53,13 +61,14 @@ type server struct {
 	codesToCheck map[string]string
 }
 
+// NewServer returns a new instance of a Server.
 func NewServer(
 	nick string,
-	bot textBot,
+	bot TextBot,
 	repository UserNickAssociationRepository,
 	recordPrinter MusicRecordPrinter,
 	statsPrinter StatisticsPrinter,
-) *server {
+) pb.PlaybotCli {
 	return &server{
 		botNick:       nick,
 		textBot:       bot,

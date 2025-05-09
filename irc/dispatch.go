@@ -19,34 +19,46 @@ func (i *Conn) Dispatch() error {
 
 		log.Print(line)
 		msg := parseMessage(line)
-		var event Event
-
-		switch msg.Command {
-		case "PING":
-			log.Print("ping pong")
-			err := i.sendf("PONG :%s", strings.Join(msg.Parameters, " "))
-			if err != nil {
-				return i.errIfConnected(err)
-			}
-		case "001":
-			event = RPL_WELCOME
-		case "MODE":
-			event = MODE
-		case "NOTICE":
-			event = NOTICE
-		case "PRIVMSG":
-			event = PRIVMSG
-		}
-
-		handler, ok := i.handlers[event]
-		if ok {
-			err := handler(i, msg)
-			if err != nil {
-				log.Printf("Error from %v handler: %v", handler, err)
-				return err
-			}
+		err = i.dispatchMessage(msg)
+		if err != nil {
+			return err
 		}
 	}
+}
+
+func (i *Conn) dispatchMessage(msg Message) error {
+	var event Event
+
+	switch msg.Command {
+	case "PING":
+		log.Print("ping pong")
+		err := i.sendf("PONG :%s", strings.Join(msg.Parameters, " "))
+		if err != nil {
+			return i.errIfConnected(err)
+		}
+
+		// It is not possible to subscribe to a PING event, so we stop there.
+		return nil
+	case "001":
+		event = RPLWelcome
+	case "MODE":
+		event = Mode
+	case "NOTICE":
+		event = Notice
+	case "PRIVMSG":
+		event = PrivMsg
+	}
+
+	handler, ok := i.handlers[event]
+	if ok {
+		err := handler(i, msg)
+		if err != nil {
+			log.Printf("Error from %v handler: %v", handler, err)
+			return err
+		}
+	}
+
+	return nil
 }
 
 func (i *Conn) errIfConnected(err error) error {

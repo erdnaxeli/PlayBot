@@ -1,3 +1,4 @@
+// Package main implements the main entrypoint for the CLI componement of the Playbot app.
 package main
 
 import (
@@ -24,9 +25,9 @@ func main() {
 	}
 
 	ircConfig := irc.Config{
-		Host: config.Irc.Host,
-		Port: config.Irc.Port,
-		Nick: config.Irc.Nick,
+		Host: config.IRC.Host,
+		Port: config.IRC.Port,
+		Nick: config.IRC.Nick,
 	}
 
 	conn, err := irc.New(ircConfig)
@@ -41,18 +42,18 @@ func main() {
 
 	conn.OnConnect(b.onConnect)
 	conn.OnNotice(b.onMessage)
-	conn.OnPrivmsg(b.onMessage)
+	conn.OnPrivMsg(b.onMessage)
 
 	log.Fatal(conn.Dispatch())
 }
 
-func (b bot) onConnect(c *irc.Conn, m irc.Message) error {
-	err := c.Privmsg("NickServ", "identify "+b.config.Irc.NickServPassword)
+func (b bot) onConnect(c *irc.Conn, _ irc.Message) error {
+	err := c.Privmsg("NickServ", "identify "+b.config.IRC.NickServPassword)
 	if err != nil {
 		return err
 	}
 
-	for _, channel := range b.config.Irc.Channels {
+	for _, channel := range b.config.IRC.Channels {
 		err := c.Join(channel)
 		if err != nil {
 			return err
