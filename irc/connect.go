@@ -2,9 +2,7 @@ package irc
 
 import (
 	"bufio"
-	"crypto/tls"
 	"fmt"
-	"log"
 	"net/textproto"
 )
 
@@ -13,19 +11,14 @@ import (
 // It starts the TCP connection, and then send a NICK command followed by an
 // USER command.
 func (i *Conn) Connect() error {
-	var err error
-	i.conn, err = tls.Dial(
-		"tcp",
-		fmt.Sprintf("%s:%d", i.config.Host, i.config.Port),
-		nil,
-	)
+	conn, err := i.config.SocketFactory(i.config)
 	if err != nil {
-		log.Printf("Unable to dial tls connection: %v", err)
-		return err
+		return fmt.Errorf("error while creating the new connection using the provided SocketFactory: %w", err)
 	}
+	i.conn = conn
 
-	i.reader = textproto.NewReader(bufio.NewReader(i.conn))
-	i.writer = textproto.NewWriter(bufio.NewWriter(i.conn))
+	i.reader = textproto.NewReader(bufio.NewReader(conn))
+	i.writer = textproto.NewWriter(bufio.NewWriter(conn))
 
 	err = i.sendf("NICK %s", i.config.Nick)
 	if err != nil {

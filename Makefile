@@ -1,4 +1,5 @@
 export CGO_ENABLED = 0
+export GOEXPERIMENT=synctest
 
 all: build
 
