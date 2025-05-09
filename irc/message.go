@@ -39,6 +39,7 @@ func parseParameters(parts []string) []string {
 			continue
 		}
 
+		// If the parameter start with ":", it means all that follow is part of the same parameter.
 		parts[i] = part[1:]
 		parameters = append(parameters, strings.Join(parts[i:], " "))
 		break

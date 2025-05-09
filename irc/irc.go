@@ -4,6 +4,8 @@
 package irc
 
 import (
+	"bufio"
+	"crypto/tls"
 	"fmt"
 	"log"
 	"net"
@@ -36,12 +38,35 @@ type Conn struct {
 //
 // It uses tls for connection.
 // The connection is buffered for reads and writes.
+//
+// The received events are not read until you call the Dispatch(), not even the PING event, so you should call it quickly to avoid any server timeout.
 func New(config Config) (*Conn, error) {
+	conn, err := tls.Dial(
+		"tcp",
+		fmt.Sprintf("%s:%d", config.Host, config.Port),
+		nil,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("unable to dial tls connection: %w", err)
+	}
+
+	return NewWithConn(config, conn)
+}
+
+// NewWithConn create a Conn object using the given connection.
+//
+// The received events are not read until you call the Dispatch(), not even the PING event, so you should call it quickly to avoid any server timeout.
+func NewWithConn(config Config, conn net.Conn) (*Conn, error) {
 	irc := &Conn{
 		config:    config,
 		connected: false,
 		handlers:  make(map[Event]Handler),
+
+		conn:   conn,
+		reader: textproto.NewReader(bufio.NewReader(conn)),
+		writer: textproto.NewWriter(bufio.NewWriter(conn)),
 	}
+
 	err := irc.Connect()
 	if err != nil {
 		return nil, err
@@ -50,19 +75,15 @@ func New(config Config) (*Conn, error) {
 	return irc, nil
 }
 
-func (i *Conn) sendRaw(msg string) error {
+func (i *Conn) sendf(format string, args ...any) error {
 	time.Sleep(time.Until(i.throttleDeadline))
-	err := i.writer.PrintfLine("%s", msg)
+	err := i.writer.PrintfLine(format, args...)
 	i.throttleDeadline = time.Now().Add(500 * time.Millisecond)
 
 	if err != nil {
-		log.Printf("Error while sending \"%s\": %v", msg, err)
+		log.Printf("Error while sending \"%s\": %v", format, err)
 	}
 	return err
-}
-
-func (i *Conn) sendf(format string, args ...any) error {
-	return i.sendRaw(fmt.Sprintf(format, args...))
 }
 
 func (i *Conn) read() (string, error) {
