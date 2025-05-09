@@ -4,7 +4,6 @@
 package irc
 
 import (
-	"bufio"
 	"crypto/tls"
 	"fmt"
 	"log"
@@ -18,6 +17,33 @@ type Config struct {
 	Host string
 	Port int
 	Nick string
+
+	// SocketFactory is used to open the connection to the IRC server.
+	//
+	// The factory may be called multiple times if Cycle() is used.
+	SocketFactory func(Config) (net.Conn, error)
+}
+
+// TLSConfig returns a configuration object using a TLS connection.
+func TLSConfig(host string, port int, nick string) Config {
+	return Config{
+		Host: host,
+		Port: port,
+		Nick: nick,
+
+		SocketFactory: func(config Config) (net.Conn, error) {
+			conn, err := tls.Dial(
+				"tcp",
+				fmt.Sprintf("%s:%d", config.Host, config.Port),
+				nil,
+			)
+			if err != nil {
+				return nil, fmt.Errorf("unable to dial tls connection: %w", err)
+			}
+
+			return conn, nil
+		},
+	}
 }
 
 // Conn represents an IRC connection.
@@ -34,37 +60,18 @@ type Conn struct {
 	writer *textproto.Writer
 }
 
-// New connects with the given config to the server and return a new IrcConnection.
+// New connects with the given config to the server and return a new Conn.
 //
-// It uses tls for connection.
+// It sends connection IRC commands right away.
+//
 // The connection is buffered for reads and writes.
 //
 // The received events are not read until you call the Dispatch(), not even the PING event, so you should call it quickly to avoid any server timeout.
 func New(config Config) (*Conn, error) {
-	conn, err := tls.Dial(
-		"tcp",
-		fmt.Sprintf("%s:%d", config.Host, config.Port),
-		nil,
-	)
-	if err != nil {
-		return nil, fmt.Errorf("unable to dial tls connection: %w", err)
-	}
-
-	return NewWithConn(config, conn)
-}
-
-// NewWithConn create a Conn object using the given connection.
-//
-// The received events are not read until you call the Dispatch(), not even the PING event, so you should call it quickly to avoid any server timeout.
-func NewWithConn(config Config, conn net.Conn) (*Conn, error) {
 	irc := &Conn{
 		config:    config,
 		connected: false,
 		handlers:  make(map[Event]Handler),
-
-		conn:   conn,
-		reader: textproto.NewReader(bufio.NewReader(conn)),
-		writer: textproto.NewWriter(bufio.NewWriter(conn)),
 	}
 
 	err := irc.Connect()

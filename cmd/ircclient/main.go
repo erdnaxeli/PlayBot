@@ -24,12 +24,7 @@ func main() {
 		log.Fatalf("Error while reading config file: %s", err)
 	}
 
-	ircConfig := irc.Config{
-		Host: config.IRC.Host,
-		Port: config.IRC.Port,
-		Nick: config.IRC.Nick,
-	}
-
+	ircConfig := irc.TLSConfig(config.IRC.Host, config.IRC.Port, config.IRC.Nick)
 	conn, err := irc.New(ircConfig)
 	if err != nil {
 		log.Fatal(err)
