@@ -12,7 +12,7 @@ import (
 // Internally, first it parses the message without the "!fav" command, then it executes
 // the "!fav" command. The first parameter of the command is optional and is an
 // absolute or relative recordID.
-func (t *textBot) favCmd(
+func (t *TextBot) favCmd(
 	channel types.Channel, person types.Person, args []string, user string,
 ) (Result, error) {
 	result, recordID, err := t.saveFavPost(channel, person, args)
@@ -21,14 +21,14 @@ func (t *textBot) favCmd(
 	}
 
 	if user == "" {
-		return result, AuthenticationRequired
+		return result, ErrAuthenticationRequired
 	}
 
 	err = t.playbot.SaveFav(user, recordID)
 	return result, err
 }
 
-func (t *textBot) saveFavPost(
+func (t *TextBot) saveFavPost(
 	channel types.Channel, person types.Person, args []string,
 ) (Result, int64, error) {
 	var result Result

@@ -9,21 +9,24 @@ import (
 	"github.com/erdnaxeli/PlayBot/textbot"
 )
 
+// Constant holding strinrgs to change the color of a IRC message.
 const (
-	NORMAL     = "\x0f"
-	GREEN      = "\x0303"
-	ORANGE     = "\x0307"
-	YELLOW     = "\x0308"
-	LIGHT_BLUE = "\x0312"
-	GREY       = "\x0314"
+	Normal    = "\x0f"
+	Green     = "\x0303"
+	Orange    = "\x0307"
+	Yellow    = "\x0308"
+	LightBlue = "\x0312"
+	Grey      = "\x0314"
 )
 
+// IrcMusicRecordPrinter provides the PrintResult method.
 type IrcMusicRecordPrinter struct{}
 
-func (IrcMusicRecordPrinter) Print(result textbot.Result) string {
+// PrintResult formats a string according to the given Result.
+func (IrcMusicRecordPrinter) PrintResult(result textbot.Result) string {
 	var b strings.Builder
 
-	fmt.Fprint(&b, YELLOW)
+	fmt.Fprint(&b, Yellow)
 
 	if result.IsNew {
 		fmt.Fprint(&b, "[+", result.ID, "]")
@@ -31,15 +34,15 @@ func (IrcMusicRecordPrinter) Print(result textbot.Result) string {
 		fmt.Fprint(&b, "[", result.ID, "]")
 	}
 
-	fmt.Fprint(&b, " ", GREEN, result.Name)
+	fmt.Fprint(&b, " ", Green, result.Name)
 
 	if result.Band.Name != "" {
 		fmt.Fprint(&b, " | ", result.Band.Name)
 	}
 
-	fmt.Fprint(&b, " ", LIGHT_BLUE, result.Duration.String())
-	if result.Url != "" {
-		fmt.Fprint(&b, NORMAL, " => ", result.Url)
+	fmt.Fprint(&b, " ", LightBlue, result.Duration.String())
+	if result.URL != "" {
+		fmt.Fprint(&b, Normal, " => ", result.URL)
 	}
 
 	var tags []string
@@ -48,23 +51,26 @@ func (IrcMusicRecordPrinter) Print(result textbot.Result) string {
 	}
 
 	if len(tags) > 0 {
-		fmt.Fprint(&b, ORANGE, " ", strings.Join(tags, " "))
+		fmt.Fprint(&b, Orange, " ", strings.Join(tags, " "))
 	}
 
 	if result.Count == 1 {
-		fmt.Fprint(&b, " ", GREY, "[1 résultat]")
+		fmt.Fprint(&b, " ", Grey, "[1 résultat]")
 	} else if result.Count > 1 {
-		fmt.Fprintf(&b, " %s [%d résultats]\n", GREY, result.Count)
+		fmt.Fprintf(&b, " %s [%d résultats]\n", Grey, result.Count)
 	}
 
 	return b.String()
 }
 
+// IrcStatisticsPrinter provides the PrintStatistics method.
 type IrcStatisticsPrinter struct {
+	// The location is which times will be shown.
 	Location *time.Location
 }
 
-func (s IrcStatisticsPrinter) Print(statistics playbot.MusicRecordStatistics) string {
+// PrintStatistics formats the a string according to the statistics object given.
+func (s IrcStatisticsPrinter) PrintStatistics(statistics playbot.MusicRecordStatistics) string {
 	var resultMsg strings.Builder
 	fmt.Fprintf(
 		&resultMsg,

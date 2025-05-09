@@ -1,0 +1,15 @@
+version: "2"
+linters:
+  enable:
+    - cyclop
+    - err113
+    - errname
+    - exhaustive
+    - exptostd
+    - funcorder
+    - gocritic
+    - revive
+  settings:
+    gocritic:
+      disabled-checks:
+        - ifElseChain

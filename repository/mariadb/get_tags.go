@@ -1,13 +1,16 @@
 package mariadb
 
-func (r mariaDbRepository) GetTags(musicRecordId int64) ([]string, error) {
+// GetTags returns the tags associated to a given music record.
+//
+// If the music record ID references a non existant music record, an empty slice is returned, and error is nil.
+func (r Repository) GetTags(recordID int64) ([]string, error) {
 	rows, err := r.db.Query(
 		`
 			select tag
 			from playbot_tags
 			where id = ?
 		`,
-		musicRecordId,
+		recordID,
 	)
 	if err != nil {
 		return []string{}, err

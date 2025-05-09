@@ -88,7 +88,7 @@ func TestSaveUserAssociation_unknownUser(t *testing.T) {
 
 	err := r.SaveAssociation(user, nick)
 
-	assert.ErrorIs(t, err, UserNotFoundErr)
+	assert.ErrorIs(t, err, ErrUserNotFound)
 }
 
 func TestSaveUserAssociation_existingUser_sameNick(t *testing.T) {

@@ -6,6 +6,7 @@ import (
 	"github.com/erdnaxeli/PlayBot/types"
 )
 
+// MusicRecordStatistics contains many statistics about a music record posts.
 type MusicRecordStatistics struct {
 	PostsCount    int
 	PeopleCount   int
@@ -22,6 +23,7 @@ type MusicRecordStatistics struct {
 	FavoritesCount   int
 }
 
+// GetMusicRecordStatistics return the statistics for a given music record.
 func (p *Playbot) GetMusicRecordStatistics(musicRecordID int64) (MusicRecordStatistics, error) {
 	return p.repository.GetMusicRecordStatistics(musicRecordID)
 }

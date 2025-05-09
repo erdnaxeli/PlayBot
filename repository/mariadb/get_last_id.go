@@ -8,7 +8,11 @@ import (
 	"github.com/erdnaxeli/PlayBot/types"
 )
 
-func (r mariaDbRepository) GetLastID(channel types.Channel, offset int) (int64, error) {
+// GetLastID returns the id of the last post known for a channel.
+//
+// The offset can be used to select a previous post.
+// Offset 0 means the last post, 1 the second last post, and so on.
+func (r Repository) GetLastID(channel types.Channel, offset int) (int64, error) {
 	row := r.db.QueryRow(
 		`
 			select p.id
@@ -29,7 +33,7 @@ func (r mariaDbRepository) GetLastID(channel types.Channel, offset int) (int64, 
 	err := row.Scan(&id)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return 0, playbot.NoRecordFoundError
+			return 0, playbot.ErrNoRecordFound
 		}
 		return 0, err
 	}

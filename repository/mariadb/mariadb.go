@@ -1,3 +1,4 @@
+// Package mariadb implements a playbot.Repository using a MariaDB server.
 package mariadb
 
 import (
@@ -5,10 +6,12 @@ import (
 	"fmt"
 
 	"github.com/erdnaxeli/PlayBot/types"
+	// register mysql driver
 	_ "github.com/go-sql-driver/mysql"
 )
 
-type mariaDbRepository struct {
+// Repository implements the playbot.Repository interface.
+type Repository struct {
 	db *sql.DB
 }
 
@@ -17,7 +20,7 @@ type searchResult struct {
 	musicRecord types.MusicRecord
 }
 
-func (s searchResult) Id() int64 {
+func (s searchResult) ID() int64 {
 	return s.id
 }
 
@@ -25,25 +28,31 @@ func (s searchResult) MusicRecord() types.MusicRecord {
 	return s.musicRecord
 }
 
-func New(user string, password string, host string, dbname string) (mariaDbRepository, error) {
+// New returns a new instance of a repository.
+//
+// It connect to the db using the given parameters.
+func New(user string, password string, host string, dbname string) (Repository, error) {
 	dsn := fmt.Sprintf(
 		"%s:%s@(%s)/%s?parseTime=true&loc=Europe%%2FParis",
 		user, password, host, dbname,
 	)
 	db, err := sql.Open("mysql", dsn)
 	if err != nil {
-		return mariaDbRepository{}, err
+		return Repository{}, err
 	}
 
 	return NewFromDB(db)
 }
 
-func NewFromDB(db *sql.DB) (mariaDbRepository, error) {
+// NewFromDB returns a new instance of a repository.
+//
+// It takes an *sql.DB instance as a parameter.
+func NewFromDB(db *sql.DB) (Repository, error) {
 	if err := db.Ping(); err != nil {
-		return mariaDbRepository{}, err
+		return Repository{}, err
 	}
 
-	return mariaDbRepository{
+	return Repository{
 		db,
 	}, nil
 }

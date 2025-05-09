@@ -8,7 +8,11 @@ import (
 	"github.com/erdnaxeli/PlayBot/types"
 )
 
-func (r mariaDbRepository) GetMusicRecord(musicRecordId int64) (types.MusicRecord, error) {
+// GetMusicRecord returns the music record with the given ID.
+//
+// If the ID is not found, the zero value of MusicRecord is returned, but error is nil.
+// You can check that a music record was actually found by checking that the returned music record ID is different from 0.
+func (r Repository) GetMusicRecord(musicRecordID int64) (types.MusicRecord, error) {
 	row := r.db.QueryRow(
 		`
 			select
@@ -21,7 +25,7 @@ func (r mariaDbRepository) GetMusicRecord(musicRecordId int64) (types.MusicRecor
 			from playbot p
 			where p.id = ?
 		`,
-		musicRecordId,
+		musicRecordID,
 	)
 
 	var title, url, source string
@@ -40,9 +44,9 @@ func (r mariaDbRepository) GetMusicRecord(musicRecordId int64) (types.MusicRecor
 		Band:     types.Band{Name: sender.V},
 		Duration: time.Duration(duration.V * int64(time.Second)),
 		Name:     title,
-		RecordId: recordID.V,
+		RecordID: recordID.V,
 		Source:   source,
-		Url:      url,
+		URL:      url,
 	}
 	return record, nil
 }

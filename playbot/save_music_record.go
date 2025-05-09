@@ -6,8 +6,8 @@ import (
 	"github.com/erdnaxeli/PlayBot/types"
 )
 
-// Save a music record pointed by the URL in the given message, and a post of this
-// record by the given user in the given channel.
+// ParseAndSaveMusicRecord save a music record pointed by the URL in the given message,
+// and create post for this record by the given user in the given channel.
 //
 // Return the id, the music record, an bool indicating if the record is a new one,
 // and an error.
@@ -23,14 +23,14 @@ func (p *Playbot) ParseAndSaveMusicRecord(
 		return 0, musicRecord, false, nil
 	}
 
-	recordId, isNew, err := p.repository.SaveMusicPost(types.MusicPost{
+	recordID, isNew, err = p.repository.SaveMusicPost(types.MusicPost{
 		MusicRecord: musicRecord,
 		Person:      person,
 		Channel:     channel,
 	})
 	if err != nil {
-		return recordId, types.MusicRecord{}, isNew, fmt.Errorf("error while saving music record: %v", err)
+		return recordID, types.MusicRecord{}, isNew, fmt.Errorf("error while saving music record: %w", err)
 	}
 
-	return recordId, musicRecord, isNew, nil
+	return recordID, musicRecord, isNew, nil
 }

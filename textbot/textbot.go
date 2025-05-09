@@ -1,4 +1,4 @@
-// Implementation of a Playbot using text message to interact.
+// Package textbot parses text messages in order to interact with a Playbot object.
 //
 // Commands are used with an exclamation mark. Currently implemented commands are:
 // * !get
@@ -19,6 +19,9 @@ import (
 	"github.com/erdnaxeli/PlayBot/types"
 )
 
+// Playbot is the interface that any object must implement to be used by textbot.
+//
+// The texbot parses the user input and executes the actions through the given Playbot object.
 type Playbot interface {
 	GetTags(recordID int64) ([]string, error)
 	GetLastID(types.Channel, int) (int64, error)
@@ -45,14 +48,25 @@ type Result struct {
 	Statistics playbot.MusicRecordStatistics
 }
 
-type textBot struct {
+// TextBot type expose one method Execute used to parse text messages and execute any commands.
+//
+// A text message can contains a command starting by "!".
+// The available commands are: "!broken", "!conf", "!fav", "!later", "!get", "!help", "!stats", and "!tag".
+//
+// The special commands "!" repeats the last command that was executed in the same channel, with the same arguments.
+//
+// If no command is found, it looks for any URL in the message.
+// If any, for each URL, a music record and a post is created.
+// Any words starting with "#" in the messages are used as tags and attached to the music record.
+type TextBot struct {
 	playbot           Playbot
 	lastCommands      map[types.Channel][]string
 	lastCommandsMutex sync.RWMutex
 }
 
-func New(playbot Playbot) *textBot {
-	return &textBot{
+// New returns an instance of a textbot.
+func New(playbot Playbot) *TextBot {
+	return &TextBot{
 		playbot:      playbot,
 		lastCommands: make(map[types.Channel][]string),
 	}
@@ -67,7 +81,7 @@ func New(playbot Playbot) *textBot {
 // value contains the music record saved, if any.
 // If the Result object is equal to its zero value and the bool value is false, it means
 // nothing has been done.
-func (t *textBot) Execute(
+func (t *TextBot) Execute(
 	channelName string, personName string, msg string, user string,
 ) (Result, bool, error) {
 	channel := types.Channel{Name: channelName}
@@ -84,40 +98,46 @@ func (t *textBot) Execute(
 		}
 	}
 
+	result, ok, err := t.executeCommand(cmd, cmdArgs, channel, person, user, msg)
+
+	if ok {
+		t.saveLastCommand(channel, args)
+	}
+
+	return result, ok, err
+}
+
+func (t *TextBot) executeCommand(cmd string, cmdArgs []string, channel types.Channel, person types.Person, user string, msg string) (Result, bool, error) {
 	var result Result
-	isCmd := true
+	ok := true
 	var err error
 
 	switch cmd {
 	case "!broken":
-		err = NotImplementedError
+		err = ErrNotImplemented
 	case "!conf":
-		err = NotImplementedError
+		err = ErrNotImplemented
 	case "!fav":
 		result, err = t.favCmd(channel, person, cmdArgs, user)
 	case "!later":
-		err = NotImplementedError
+		err = ErrNotImplemented
 	case "!get":
 		result, err = t.getCmd(channel, person, cmdArgs)
 	case "!help":
-		err = NotImplementedError
+		err = ErrNotImplemented
 	case "!stats":
 		result, err = t.statsCmd(channel, person, cmdArgs)
 	case "!tag":
 		err = t.saveTagsCmd(channel, person, cmdArgs)
 	default:
 		result, err = t.saveMusicPost(channel, person, msg)
-		isCmd = false
+		ok = false
 	}
 
-	if isCmd {
-		t.saveLastCommand(channel, args)
-	}
-
-	return result, isCmd, err
+	return result, ok, err
 }
 
-func (t *textBot) getLastCommand(channel types.Channel) ([]string, bool) {
+func (t *TextBot) getLastCommand(channel types.Channel) ([]string, bool) {
 	t.lastCommandsMutex.RLock()
 	defer t.lastCommandsMutex.RUnlock()
 
@@ -125,21 +145,21 @@ func (t *textBot) getLastCommand(channel types.Channel) ([]string, bool) {
 	return v, ok
 }
 
-func (t *textBot) saveLastCommand(channel types.Channel, cmd []string) {
+func (t *TextBot) saveLastCommand(channel types.Channel, cmd []string) {
 	t.lastCommandsMutex.Lock()
 	defer t.lastCommandsMutex.Unlock()
 
 	t.lastCommands[channel] = cmd
 }
 
-func (t *textBot) getRecordIDFromArgs(channel types.Channel, args []string) (int64, []string, error) {
+func (t *TextBot) getRecordIDFromArgs(channel types.Channel, args []string) (int64, []string, error) {
 	recordID, args := parseID(args)
 	if recordID > 0 {
 		return recordID, args, nil
 	}
 
 	if recordID < -10 {
-		return 0, args, OffsetToBigError
+		return 0, args, ErrOffsetToBig
 	}
 
 	recordID, err := t.playbot.GetLastID(channel, int(recordID))
@@ -163,8 +183,9 @@ func parseID(args []string) (int64, []string) {
 	return recordID, args[1:]
 }
 
+var blankRgx = regexp.MustCompile(`\s+`)
+
 func parseArgs(msg string) []string {
-	blankRgx := regexp.MustCompile(`\s+`)
 	args := blankRgx.Split(msg, -1)
 
 	cleanArgs := args[:0]

@@ -64,7 +64,7 @@ func TestGetMusicRecord_nullableColumns(t *testing.T) {
 			)
 		`,
 		post.MusicRecord.Source,
-		post.MusicRecord.Url,
+		post.MusicRecord.URL,
 		post.MusicRecord.Name,
 		int(post.MusicRecord.Duration.Seconds()),
 	)
@@ -80,5 +80,5 @@ func TestGetMusicRecord_nullableColumns(t *testing.T) {
 	// assertions
 
 	assert.Equal(t, "", record.Band.Name)
-	assert.Equal(t, "", record.RecordId)
+	assert.Equal(t, "", record.RecordID)
 }
