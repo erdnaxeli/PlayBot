@@ -48,15 +48,25 @@ type Result struct {
 	Statistics playbot.MusicRecordStatistics
 }
 
-type textBot struct {
+// TextBot type expose one method Execute used to parse text messages and execute any commands.
+//
+// A text message can contains a command starting by "!".
+// The available commands are: "!broken", "!conf", "!fav", "!later", "!get", "!help", "!stats", and "!tag".
+//
+// The special commands "!" repeats the last command that was executed in the same channel, with the same arguments.
+//
+// If no command is found, it looks for any URL in the message.
+// If any, for each URL, a music record and a post is created.
+// Any words starting with "#" in the messages are used as tags and attached to the music record.
+type TextBot struct {
 	playbot           Playbot
 	lastCommands      map[types.Channel][]string
 	lastCommandsMutex sync.RWMutex
 }
 
 // New returns an instance of a textbot.
-func New(playbot Playbot) *textBot {
-	return &textBot{
+func New(playbot Playbot) *TextBot {
+	return &TextBot{
 		playbot:      playbot,
 		lastCommands: make(map[types.Channel][]string),
 	}
@@ -71,7 +81,7 @@ func New(playbot Playbot) *textBot {
 // value contains the music record saved, if any.
 // If the Result object is equal to its zero value and the bool value is false, it means
 // nothing has been done.
-func (t *textBot) Execute(
+func (t *TextBot) Execute(
 	channelName string, personName string, msg string, user string,
 ) (Result, bool, error) {
 	channel := types.Channel{Name: channelName}
@@ -97,7 +107,7 @@ func (t *textBot) Execute(
 	return result, ok, err
 }
 
-func (t *textBot) executeCommand(cmd string, cmdArgs []string, channel types.Channel, person types.Person, user string, msg string) (Result, bool, error) {
+func (t *TextBot) executeCommand(cmd string, cmdArgs []string, channel types.Channel, person types.Person, user string, msg string) (Result, bool, error) {
 	var result Result
 	ok := true
 	var err error
@@ -127,7 +137,7 @@ func (t *textBot) executeCommand(cmd string, cmdArgs []string, channel types.Cha
 	return result, ok, err
 }
 
-func (t *textBot) getLastCommand(channel types.Channel) ([]string, bool) {
+func (t *TextBot) getLastCommand(channel types.Channel) ([]string, bool) {
 	t.lastCommandsMutex.RLock()
 	defer t.lastCommandsMutex.RUnlock()
 
@@ -135,14 +145,14 @@ func (t *textBot) getLastCommand(channel types.Channel) ([]string, bool) {
 	return v, ok
 }
 
-func (t *textBot) saveLastCommand(channel types.Channel, cmd []string) {
+func (t *TextBot) saveLastCommand(channel types.Channel, cmd []string) {
 	t.lastCommandsMutex.Lock()
 	defer t.lastCommandsMutex.Unlock()
 
 	t.lastCommands[channel] = cmd
 }
 
-func (t *textBot) getRecordIDFromArgs(channel types.Channel, args []string) (int64, []string, error) {
+func (t *TextBot) getRecordIDFromArgs(channel types.Channel, args []string) (int64, []string, error) {
 	recordID, args := parseID(args)
 	if recordID > 0 {
 		return recordID, args, nil

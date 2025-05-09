@@ -12,7 +12,14 @@ import (
 	"github.com/erdnaxeli/PlayBot/types"
 )
 
-func (r mariaDbRepository) SearchMusicRecord(
+// SearchMusicRecord searches for music record with words and tags.
+//
+// The words are looked for in the music record band name and title.
+//
+// This method returns a channel where SearchResult are written too.
+// Closing this channel while throw a panic error, you must not do it.
+// Instead use the context and cancel it if you want to stop the flooding of search result.
+func (r Repository) SearchMusicRecord(
 	ctx context.Context, channel types.Channel, words []string, tags []string,
 ) (int64, chan playbot.SearchResult, error) {
 	tx, err := r.db.Begin()

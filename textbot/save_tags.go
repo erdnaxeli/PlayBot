@@ -4,7 +4,7 @@ import (
 	"github.com/erdnaxeli/PlayBot/types"
 )
 
-func (t *textBot) saveTagsCmd(
+func (t *TextBot) saveTagsCmd(
 	channel types.Channel, _ types.Person, args []string,
 ) error {
 	if len(args) == 0 {

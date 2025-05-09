@@ -13,7 +13,10 @@ const (
 	noReferencedRow2Err = 1452
 )
 
-func (r mariaDbRepository) SaveFav(user string, recordID int64) error {
+// SaveFav adds the given music record to the user's favorites.
+//
+// If the music record ID references a non existant music record, an error playbot.ErrNoRecordFound is returned.
+func (r Repository) SaveFav(user string, recordID int64) error {
 	_, err := r.db.Exec(
 		`
 			insert into playbot_fav (user, id)

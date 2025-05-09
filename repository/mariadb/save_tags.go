@@ -3,7 +3,7 @@ package mariadb
 // SaveTags add some tags to a music record.
 //
 // The given tags are added to any existing tags already linked to this music record.
-func (r mariaDbRepository) SaveTags(musicRecordID int64, tags []string) error {
+func (r Repository) SaveTags(musicRecordID int64, tags []string) error {
 	tx, err := r.db.Begin()
 	if err != nil {
 		return err

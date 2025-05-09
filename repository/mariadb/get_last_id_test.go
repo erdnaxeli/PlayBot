@@ -29,8 +29,8 @@ func TestGetLastID_ok(t *testing.T) {
 	}
 
 	tests := []struct {
-		offset int
-		id     int64
+		offset     int
+		expectedID int64
 	}{
 		{0, ids[99]},
 		{1, ids[98]},
@@ -45,7 +45,7 @@ func TestGetLastID_ok(t *testing.T) {
 				result, err := r.GetLastID(channel, test.offset)
 				require.Nil(t, err)
 
-				assert.Equal(t, test.id, result)
+				assert.Equal(t, test.expectedID, result)
 			},
 		)
 	}

@@ -2,7 +2,7 @@ package textbot
 
 import "github.com/erdnaxeli/PlayBot/types"
 
-func (t *textBot) statsCmd(
+func (t *TextBot) statsCmd(
 	channel types.Channel, _ types.Person, args []string,
 ) (Result, error) {
 	if len(args) > 1 {

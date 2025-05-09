@@ -3,6 +3,7 @@ package ldjson
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"time"
@@ -46,7 +47,10 @@ func New() Extractor {
 }
 
 func (e extractor) Extract(url string) (types.MusicRecord, error) {
-	record := e.getMusicRecord(url)
+	record, err := e.getMusicRecord(url)
+	if err != nil {
+		return types.MusicRecord{}, err
+	}
 	recordURL := record.URL
 	if recordURL == "" {
 		recordURL = record.MainEntityOfPage
@@ -71,7 +75,7 @@ func (e extractor) Extract(url string) (types.MusicRecord, error) {
 	}, nil
 }
 
-func (e extractor) getMusicRecord(url string) MusicRecording {
+func (e extractor) getMusicRecord(url string) (MusicRecording, error) {
 	var resp *http.Response
 	var err error
 
@@ -79,7 +83,7 @@ func (e extractor) getMusicRecord(url string) MusicRecording {
 		resp, err = http.Get(url)
 
 		if err != nil {
-			log.Fatal("Error while Get", err)
+			return MusicRecording{}, fmt.Errorf("error while Get: %w", err)
 		}
 
 		if resp.StatusCode == http.StatusOK {
@@ -92,26 +96,26 @@ func (e extractor) getMusicRecord(url string) MusicRecording {
 	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode != http.StatusOK {
-		log.Fatal("Received an HTTP error: ", resp.Status)
+		return MusicRecording{}, fmt.Errorf("%w: %d %s", ErrHTTPNotOk, resp.StatusCode, resp.Status)
 	}
 
 	document, err := html.Parse(resp.Body)
 	if err != nil {
-		log.Fatal("Error while Parse: ", err)
+		return MusicRecording{}, fmt.Errorf("error while Parse: %w", err)
 	}
 
 	ldjson := e.parse(document)
 	if ldjson == "" {
-		log.Fatal("No ld+json found")
+		return MusicRecording{}, ErrNoLDJSON
 	}
 
 	var music MusicRecording
 	err = json.Unmarshal([]byte(ldjson), &music)
 	if err != nil {
-		log.Fatal("Error while Unmarshal: ", err)
+		return MusicRecording{}, fmt.Errorf("error while Unmarshal: %w", err)
 	}
 
-	return music
+	return music, nil
 }
 
 // Return the content of the first <script type="application/ld+json"> node found.

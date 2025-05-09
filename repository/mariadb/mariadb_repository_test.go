@@ -53,7 +53,7 @@ func assertEqualRecordRow(t *testing.T, tx *sql.Tx, record types.MusicRecord, ro
 	assert.Equal(t, record.RecordID, externalID.V)
 }
 
-func getTestRepository(t *testing.T) mariaDbRepository {
+func getTestRepository(t *testing.T) Repository {
 	r, err := New("test", "test", "localhost", "test")
 	require.Nil(
 		t,

@@ -8,7 +8,8 @@ import (
 // ErrUserNotFound is the error when a user cannot be found.
 var ErrUserNotFound = errors.New("user not found")
 
-func (r mariaDbRepository) GetUserFromNick(nick string) (string, error) {
+// GetUserFromNick returns the username associated to a given nickname.
+func (r Repository) GetUserFromNick(nick string) (string, error) {
 	row := r.db.QueryRow(
 		`
 			select user
@@ -31,7 +32,8 @@ func (r mariaDbRepository) GetUserFromNick(nick string) (string, error) {
 	return user, nil
 }
 
-func (r mariaDbRepository) GetUserFromCode(code string) (string, error) {
+// GetUserFromCode returns the username associated to a given code.
+func (r Repository) GetUserFromCode(code string) (string, error) {
 	row := r.db.QueryRow(
 		`
 			select user
@@ -54,7 +56,8 @@ func (r mariaDbRepository) GetUserFromCode(code string) (string, error) {
 	return user, nil
 }
 
-func (r mariaDbRepository) SaveAssociation(user string, nick string) error {
+// SaveAssociation saves the associated between a username and a nickname.
+func (r Repository) SaveAssociation(user string, nick string) error {
 	result, err := r.db.Exec(
 		`
 			update playbot_codes

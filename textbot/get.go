@@ -14,7 +14,7 @@ import (
 	"github.com/spf13/pflag"
 )
 
-func (t *textBot) getCmd(channel types.Channel, _ types.Person, args []string) (Result, error) {
+func (t *TextBot) getCmd(channel types.Channel, _ types.Person, args []string) (Result, error) {
 	var all bool
 	var force bool
 
@@ -74,7 +74,7 @@ func (t *textBot) getCmd(channel types.Channel, _ types.Person, args []string) (
 	return result, nil
 }
 
-func (t *textBot) getByID(args []string) (int64, types.MusicRecord, error) {
+func (t *TextBot) getByID(args []string) (int64, types.MusicRecord, error) {
 	if len(args) != 1 {
 		return 0, types.MusicRecord{}, nil
 	}
@@ -95,7 +95,7 @@ func (t *textBot) getByID(args []string) (int64, types.MusicRecord, error) {
 	return recordID, record, err
 }
 
-func (t *textBot) getBySearch(args []string, channel types.Channel, all bool) (int64, types.MusicRecord, int64, error) {
+func (t *TextBot) getBySearch(args []string, channel types.Channel, all bool) (int64, types.MusicRecord, int64, error) {
 	var words []string
 	var tags []string
 	var excludedTags []string
