@@ -5,6 +5,3 @@
 
 # config
 playbot.conf
-
-# go generate
-cmd/server/rpc

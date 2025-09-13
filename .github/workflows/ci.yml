@@ -14,10 +14,6 @@ jobs:
       - uses: actions/setup-go@v5
         with:
           go-version-file: 'go.mod'
-      - name: Install Protoc
-        uses: arduino/setup-protoc@v3
-      - name: generate RPC code
-        run: make generate
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v8
         with:
@@ -32,10 +28,6 @@ jobs:
         go-version-file: 'go.mod'
     - name: Start MariaDB
       run: docker compose up --detach && sleep 2
-    - name: Install Protoc
-      uses: arduino/setup-protoc@v3
-    - name: Generate RPC code
-      run: make generate
     - name: Run tests
       run: go run gotest.tools/gotestsum@v1 --junitfile junit.xml
     - name: Test Report
