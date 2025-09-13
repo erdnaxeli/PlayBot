@@ -9,6 +9,12 @@ linters:
     - funcorder
     - gocritic
     - revive
+  exclusions:
+    rules:
+      # prevent revive for complaining about the "types" package
+      - linters:
+          - revive
+        text: "avoid meaningless package names"
   settings:
     gocritic:
       disabled-checks:
