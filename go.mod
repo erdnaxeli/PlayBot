@@ -7,7 +7,7 @@ toolchain go1.24.2
 tool github.com/golangci/golangci-lint/v2/cmd/golangci-lint
 
 require (
-	github.com/brianvoe/gofakeit/v7 v7.5.1
+	github.com/brianvoe/gofakeit/v7 v7.6.0
 	github.com/go-sql-driver/mysql v1.9.3
 	github.com/spf13/pflag v1.0.10
 	github.com/spf13/viper v1.20.1
