@@ -15,7 +15,7 @@ func TestPrivsg(t *testing.T) {
 		conn, _, server := connect(t)
 
 		to := gofakeit.FirstName()
-		msg := gofakeit.Sentence(5)
+		msg := gofakeit.Sentence()
 		go func() {
 			err := conn.Privmsg(to, msg)
 			require.Nil(t, err)
