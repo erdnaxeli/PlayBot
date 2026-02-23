@@ -9,7 +9,6 @@ linters:
     - funcorder
     - gocritic
     - revive
-    - govet
   exclusions:
     rules:
       # prevent revive for complaining about the "types" package
