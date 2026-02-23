@@ -17,7 +17,7 @@ func dropEvent(t *testing.T, conn net.Conn) {
 
 func dropEvents(t *testing.T, count int, conn net.Conn) {
 	buffer := make([]byte, 1000)
-	for i := 0; i < count; i++ {
+	for range count {
 		_, err := conn.Read(buffer)
 		require.Nil(t, err)
 	}
@@ -65,7 +65,7 @@ func write(t *testing.T, conn net.Conn, msg string) {
 }
 
 func TestDispatchPing(t *testing.T) {
-	synctest.Run(func() {
+	synctest.Test(t, func(t *testing.T) {
 		conn, _, server := connect(t)
 		go dispatch(t, conn)
 
@@ -86,7 +86,7 @@ func TestDispatchPing(t *testing.T) {
 }
 
 func TestDispatchPrivMsg(t *testing.T) {
-	synctest.Run(func() {
+	synctest.Test(t, func(t *testing.T) {
 		conn, _, server := connect(t)
 		go dispatch(t, conn)
 

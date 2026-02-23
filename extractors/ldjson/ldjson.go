@@ -79,7 +79,7 @@ func (e extractor) getMusicRecord(url string) (MusicRecording, error) {
 	var resp *http.Response
 	var err error
 
-	for retries := 0; retries < 10; retries++ {
+	for range 10 {
 		resp, err = http.Get(url)
 
 		if err != nil {
