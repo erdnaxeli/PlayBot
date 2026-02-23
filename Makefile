@@ -1,5 +1,4 @@
 export CGO_ENABLED = 0
-export GOEXPERIMENT=synctest
 
 all: build
 
@@ -18,7 +17,7 @@ generate:
 
 style:
 	go fmt ./...
-	go tool golangci-lint run ./...
+	golangci-lint run --fix ./...
 
 test:
 	go test ./...

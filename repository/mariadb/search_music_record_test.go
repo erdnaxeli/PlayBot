@@ -425,7 +425,7 @@ func TestSearchMusicRecord_contextDone(t *testing.T) {
 	channel := gofakeit.DomainName()
 
 	// create 10 posts in channel
-	for i := 0; i < 10; i++ {
+	for range 10 {
 		post := getMusicPost()
 		post.Channel.Name = channel
 		_, isNew, err := r.SaveMusicPost(post)

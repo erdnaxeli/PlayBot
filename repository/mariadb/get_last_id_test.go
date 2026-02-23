@@ -17,7 +17,7 @@ func TestGetLastID_ok(t *testing.T) {
 	_ = gofakeit.Struct(&channel)
 
 	var ids []int64
-	for i := 0; i < 100; i++ {
+	for range 100 {
 		post := getMusicPost()
 		post.Channel = channel
 

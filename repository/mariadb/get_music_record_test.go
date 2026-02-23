@@ -21,7 +21,7 @@ func TestGetMusicRecord_ok(t *testing.T) {
 	var records []types.MusicRecord
 	var recordIDs []int64
 	r := getTestRepository(t)
-	for i := 0; i < 10; i++ {
+	for range 10 {
 		post := getMusicPost()
 		recordID, isNew, err := r.SaveMusicPost(post)
 		require.Nil(t, err)

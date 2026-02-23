@@ -11,7 +11,7 @@ import (
 )
 
 func TestPrivsg(t *testing.T) {
-	synctest.Run(func() {
+	synctest.Test(t, func(t *testing.T) {
 		conn, _, server := connect(t)
 
 		to := gofakeit.FirstName()
