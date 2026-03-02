@@ -9,7 +9,7 @@ require (
 	github.com/spf13/viper v1.21.0
 	github.com/stretchr/testify v1.11.1
 	github.com/twitchtv/twirp v8.1.3+incompatible
-	golang.org/x/net v0.50.0
+	golang.org/x/net v0.51.0
 	google.golang.org/api v0.267.0
 	google.golang.org/protobuf v1.36.11
 )
