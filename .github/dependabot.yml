@@ -2,11 +2,15 @@ version: 2
 updates:
   - package-ecosystem: "gomod" # See documentation for possible values
     directory: "/" # Location of package manifests
+    cooldown:
+      default-days: 5
     schedule:
       interval: "weekly"
   - package-ecosystem: "github-actions"
     # Workflow files stored in the
     # default location of `.github/workflows`
     directory: "/"
+    cooldown:
+      default-days: 5
     schedule:
       interval: "weekly"
