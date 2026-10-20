@@ -102,16 +102,36 @@ You need to clone the repository and build the project yourself.
 $ make
 ```
 
-It will build two executables: `server` and `ircclient`.
+It will build three executables: `server`, `ircclient`, and `slackclient`.
 
 The `ircclient` one is the client connecting to the IRC server.
 It sends the messages over HTTP (using protobuf) to the PayBot server.
 
-The `server` executable is the PlayBot server.
-It parses IRC messages received over HTTP and executes corresponding commands.
-The server runs on localhost on the port 1111, this is currently not configurable.
+The `slackclient` receives Slack Events API requests on `/slack/events`, sends
+messages to the same PlayBot server over HTTP (using protobuf), and posts
+responses back to Slack. Event callbacks are acknowledged after being placed
+in a bounded in-memory queue and processed asynchronously; processing failures
+are logged. Configure a public HTTPS URL for this endpoint in
+your Slack app's Event Subscriptions settings. The client listens on
+`:3000` by default; terminate TLS at a public reverse proxy and forward requests
+to that address.
 
-Both executables need to have access to a configuration file named `playbot.conf`, in the folder where they are executed.
+Configure the Slack bot token and signing secret in `playbot.conf` or through
+the `SLACK_BOT_TOKEN` and `SLACK_SIGNING_SECRET` environment variables. The
+`SLACK_LISTEN_ADDRESS` environment variable overrides the default listen
+address. Subscribe the bot to `message.channels`, `message.groups`, `message.im`, and
+`message.mpim` events as needed, grant it the `chat:write` bot-token scope,
+and invite it to the channels where it should respond. Slack user IDs are used
+as message authors; they are not linked to existing IRC accounts, so
+IRC-associated favorites are not available through Slack.
+
+The `server` executable is the PlayBot server.
+It parses messages received over HTTP and executes corresponding commands.
+The server listens on `localhost:1111` by default; configure another address with
+`SERVER_ADDR` or the `server.address` setting.
+
+Each executable needs access to a configuration file named `playbot.conf` in
+the folder where it is executed.
 You can find an example of the expected configuration in the file `example.conf`.
 
 Having such a client / server architecture allow to deploys a new version of the server without restarting the client, and thus without disconnecting the bot from IRC.
