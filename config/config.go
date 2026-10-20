@@ -16,6 +16,13 @@ type IRCConfig struct {
 	NickServPassword string   `json:"nickserv_password"`
 }
 
+// SlackConfig represents the configuration for the Slack client.
+type SlackConfig struct {
+	ListenAddress string `json:"listen_address"`
+	BotToken      string `json:"bot_token"`
+	SigningSecret string `json:"signing_secret"`
+}
+
 // Config represents the configuration to run the playbot app.
 type Config struct {
 	YoutubeAPIKey string
@@ -24,6 +31,7 @@ type Config struct {
 	DbHost        string
 	DbPassword    string
 	IRC           IRCConfig
+	Slack         SlackConfig
 	Timezone      string
 	ServerAddress string
 }
@@ -31,6 +39,7 @@ type Config struct {
 // ReadConfig read the configuratio from a config file or env variables.
 func ReadConfig() (Config, error) {
 	viper.SetDefault("server.address", "localhost:1111")
+	viper.SetDefault("slack.listen_address", ":3000")
 
 	viper.SetConfigFile("playbot.conf")
 	viper.SetConfigType("json")
@@ -52,6 +61,9 @@ func ReadConfig() (Config, error) {
 	_ = viper.BindEnv("irc.nick", "IRC_NICK")
 	_ = viper.BindEnv("irc.channels", "IRC_CHANNELS")
 	_ = viper.BindEnv("irc.nickserv_password", "IRC_NICKSERV_PWD")
+	_ = viper.BindEnv("slack.listen_address", "SLACK_LISTEN_ADDRESS")
+	_ = viper.BindEnv("slack.bot_token", "SLACK_BOT_TOKEN")
+	_ = viper.BindEnv("slack.signing_secret", "SLACK_SIGNING_SECRET")
 	_ = viper.BindEnv("server.address", "SERVER_ADDR")
 	_ = viper.BindEnv("timezone", "TIMEZONE")
 
@@ -67,6 +79,11 @@ func ReadConfig() (Config, error) {
 			Nick:             viper.GetString("irc.nick"),
 			Channels:         viper.GetStringSlice("irc.channels"),
 			NickServPassword: viper.GetString("irc.nickserv_password"),
+		},
+		Slack: SlackConfig{
+			ListenAddress: viper.GetString("slack.listen_address"),
+			BotToken:      viper.GetString("slack.bot_token"),
+			SigningSecret: viper.GetString("slack.signing_secret"),
 		},
 		ServerAddress: viper.GetString("server.address"),
 		Timezone:      viper.GetString("timezone"),

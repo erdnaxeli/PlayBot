@@ -8,7 +8,10 @@ build-server:
 build-ircclient:
 	go build -ldflags="-s" ./cmd/ircclient
 
-build: build-ircclient build-server
+build-slackclient:
+	go build -ldflags="-s" ./cmd/slackclient
+
+build: build-ircclient build-slackclient build-server
 
 generate:
 	go install google.golang.org/protobuf/cmd/protoc-gen-go
@@ -21,4 +24,3 @@ style:
 
 test:
 	go test ./...
-
