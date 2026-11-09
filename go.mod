@@ -5,7 +5,7 @@ go 1.26.0
 require (
 	github.com/brianvoe/gofakeit/v7 v7.18.1
 	github.com/go-sql-driver/mysql v1.10.1
-	github.com/spf13/pflag v1.0.10
+	github.com/spf13/pflag v1.1.0
 	github.com/spf13/viper v1.21.0
 	github.com/stretchr/testify v1.12.1
 	github.com/twitchtv/twirp v8.1.3+incompatible
